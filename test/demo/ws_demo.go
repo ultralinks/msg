@@ -1,4 +1,4 @@
-package main
+package demo
 
 import (
 "flag"
@@ -8,7 +8,7 @@ import (
 "time"
 )
 
-var addr = flag.String("addr", "localhost:9000", "http service address")
+var addr = flag.String("addr", "192.168.18.239:9000", "http service address")
 
 func loop() {
 	for {
