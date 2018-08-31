@@ -1,4 +1,4 @@
-package openId
+package openid
 
 import (
     "testing"
