@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+package gateway
 
 import (
 	"bytes"
-	"log"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -63,10 +63,10 @@ func (c *Client) readPump() {
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, message, err := c.conn.ReadMessage()
-		log.Println("read message", string(message))
+
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v", err)
+				fmt.Println("read message error", err)
 			}
 			break
 		}
@@ -122,15 +122,34 @@ func (c *Client) writePump() {
 }
 
 // serveWs handles websocket requests from the peer.
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
+func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+
+	//locaalhost:9000/ws?token=sdlfjskdjfkdgjsdf
+	//get token from request
+	authToken := r.FormValue("authToken")
+
+	//todo rpc user logic server
+	userToken, authErr := getUserFromAuthToken(authToken)
+
+	if authErr != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("authToken is invalid, connection refused"))
 		return
 	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		w.Write([]byte("connection fail"))
+		fmt.Println("connection", err)
+		return
+	}
+
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
 	client.hub.register <- client
 
+	UserClientMap.Join(userToken, client)
+
+	//log.Println("userClientMap", UserClientMap)
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
 	go client.writePump()

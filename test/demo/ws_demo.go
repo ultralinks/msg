@@ -1,29 +1,41 @@
-package demo
+package main
 
 import (
-"flag"
-"log"
-"net/url"
-"github.com/gorilla/websocket"
-"time"
+	"flag"
+	"fmt"
+	"log"
+	"net/url"
+	"time"
+
+	"github.com/gorilla/websocket"
 )
 
-var addr = flag.String("addr", "192.168.18.239:9000", "http service address")
+var addr = flag.String("addr", "localhost:9000", "http service address")
 
 func loop() {
 	for {
 		u := url.URL{Scheme: "ws", Host: *addr, Path: "/ws"}
+		q := u.Query()
+		q.Set("authToken", "001")
+		u.RawQuery = q.Encode()
 		c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 		if err != nil {
 			continue
 		}
-		// 循环读消息
+		// 循环读写消息
 		for {
-			_, _, err := c.ReadMessage()
+			error := c.WriteMessage(websocket.TextMessage, []byte("hello, I am client"))
+			if error != nil {
+				fmt.Println("writeMessage error")
+			}
+
+			time.Sleep(time.Second)
+			_, message, err := c.ReadMessage()
 			if err != nil {
-				// log.Println("read:", err)
 				break
 			}
+			fmt.Println("read message:", string(message[:]))
+			time.Sleep(3 * time.Second)
 			// log.Printf("recv: %s", message)
 		}
 		c.Close()
@@ -34,7 +46,7 @@ func main() {
 	flag.Parse()
 	log.SetFlags(0)
 
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1000; i++ {
 		go loop()
 	}
 
