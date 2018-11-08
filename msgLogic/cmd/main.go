@@ -1,13 +1,26 @@
-package cmd
+package main
 
 import (
+	"msg/gateway/service/msgLogic"
+	msgLogic2 "msg/msgLogic"
+	"msg/msgLogic/app"
+	"msg/msgLogic/httpServer"
 	"msg/msgLogic/pb/gateway"
-	"msg/msgLogic/rpcClient"
+	"time"
 )
 
 var GatewayRpcClient gateway.GatewayClient
 
 func main(){
-	rpcClient.InitGatewayRpcClient()
-}
+	app.InitConfig()
+	app.InitDB()
+	app.InitRpcClient()
+	go msgLogic2.RunRpcServer()
 
+	go msgLogic.InitRpcClient()
+	go httpServer.Start()
+
+	for {
+		time.Sleep(time.Minute)
+	}
+}

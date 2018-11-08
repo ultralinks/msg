@@ -1,0 +1,41 @@
+http:
+  domain: "0.0.0.0"
+  port: 10003
+rpc:
+  host: "0.0.0.0"
+  port: 10004
+db:
+  host: "127.0.0.1"
+  port: "3306"
+  user: "root"
+  password: ""
+  name: "msg"
+redis:
+  addr: "127.0.0.1:6379"
+  password: ""
+  pool_size: 10
+secret:
+  jwt_key: "auth_key"
+  pass_hash_salt: "pass_hash_salt"
+user_rpc:
+  host: "localhost"
+  port: "10002"
+pingpp:
+  app_id: app_u5eHmPGufvXTSSa9
+  key: sk_live_eXzLWL5mz9y1Ti108KSSe5KC
+  private_key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIICWwIBAAKBgQCe7BlYBYypxblZEq1dfLqQwea291+OAS4iP++yxHx3oSAjk5o9
+    uLqMUVqh4axsaByxxGTUAdVEYc3yrJuH+OEU3xFNd/64RAiGZdpsvFsX3Tcj/4TF
+    6PsG6D8o6BoDFTD7oMs8NdQlqG8OQDCna+OEkE+0JiZqgtdTnRjluA2d3QIDAQAB
+    AoGAEYZhqRY7k8EtFkh7+7I0dKAdTBHtZKB2sOoyCZmnTB3liGbPfHzxfWW/Q9i6
+    Bd5ZQ7UvlT16giby6g7ku9LTJyiPqOBdUbZSo7tI+baDAFnp1TkP3xSPMDcZcWzs
+    B9Y+vEdfi8ykwldfbjKWACwyVDzY2DpR9JMERHAQlrHQfnUCQQDNp7sx05x8Jhuw
+    FdsUqlZG/4Qwzs5TDotYHi0MAf0RFyfCNosh19hCmNONsjheIlNiz86LZUdsIjXl
+    Lvu6Ufp3AkEAxdOlnTHxQDP1QD7iOXcOtH9HkryfHq5uF5jxJi6YqARXx6ITTG35
+    cPe4DsNW7IKn1m15c/7Y4Qw0V339UVLrSwJACskKIzHS2hvxhcmPpMTOI4kQ+LJP
+    1cFEg4mJmUCdcgEB38iWgV7dg5iaN6sqE52/O8ZkMaFNHpmos+1D3GCiPwJAVXed
+    A48CJbTM7la8sgsH5V9f8rtfG4hMtBE1jkNvXJeTvQH+yHRy4iWD9YzbTw8bp/5g
+    DIc79+6n5mzeNnZWhQJAc6hLq4KB+ZgTWQxH9G3GXIHA2av+yURDAETVm2MWLFu8
+    ABggJNG6XptK1d+QZJ8lDHyeUmUBoxEn0mpIFypG9g==
+    -----END RSA PRIVATE KEY-----

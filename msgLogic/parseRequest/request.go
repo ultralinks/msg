@@ -4,61 +4,50 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"msg/msgLogic/app"
 	"msg/msgLogic/pb/gateway"
-	"msg/msgLogic/rpcClient"
 	"time"
 )
 
 type Message struct {
-	conversationId string
-	from           string
-	msgType        string // text image video audio
+	ConvId string
+	from   string
+	//msgType        string // text image video audio
 
-	text     string
-	image    string
-	video    string
-	audio    string
-	location string
+	//text     string
+	//image    string
+	//video    string
+	//audio    string
+	//location string
+	data string
 }
 
 type Request struct {
-	action  string
-	content Message
-	headers struct{}
+	Action string                     `json:"action"`
+	Data   map[string]json.RawMessage `json:"data"`
+	ConvId string                     `json:"convId"`
+	From   string                     `json:"from"`
 }
 
-type Response struct {
-	action  string
-	content Message
-	headers struct{}
-}
+//type Response struct {
+//	action  string
+//	content Message
+//	headers struct{}
+//}
 
 func ParseRequest(requestByte []byte) {
 	request := Request{}
 	json.Unmarshal(requestByte, &request)
 
-	switch request.action {
-	// data.action==im, get conversationId and get to users token, then put response to gateway
+	switch request.Action {
+	// data.action==im, get ConvId and get to users token, then put response to gateway
 	case "im":
-		conversationId := request.content.conversationId
-		tokens := getUserTokensByConversationId(conversationId)
+		ConvId := request.ConvId
+		linkKeys := getLinkKeyByConvId(ConvId)
 
 		data := requestByte
-		for _, token := range tokens {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-			defer cancel()
-
-			//todo data 加工
-
-			status, err := rpcClient.GatewayRpcClient.ReceiveSendData(ctx, &gateway.SendDataRequest{
-				Token: token,
-				Data:  data,
-			})
-
-			if err != nil {
-				log.Println("rpc get user info error", err)
-			}
-			log.Println("msgLogic to gateway status", status)
+		for _, token := range linkKeys {
+			receiveSendData(token, data)
 		}
 
 	case "listHistory":
@@ -68,7 +57,26 @@ func ParseRequest(requestByte []byte) {
 	}
 }
 
-//mock param conversationId return tokens
-func getUserTokensByConversationId(conversationId string) []string {
-	return []string{"001", "002"}
+func receiveSendData(token string, data []byte) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	//todo data 加工
+	_, err := app.GatewayRpcClient.ReceiveSendData(ctx, &gateway.SendDataRequest{
+		Token: token,
+		Data:  data,
+	})
+
+	if err != nil {
+		log.Println("rpc gatewayRpcClient", err)
+	}
+
+}
+
+//mock param ConvId return linkKeys
+func getLinkKeyByConvId(ConvId string) []string {
+	if ConvId == "11111" {
+		return []string{"001", "002"}
+	}
+	return []string{}
 }

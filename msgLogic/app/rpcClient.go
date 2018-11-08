@@ -1,15 +1,15 @@
-package rpcClient
+package app
 
 import (
-"google.golang.org/grpc"
-"log"
-"msg/msgLogic/pb/gateway"
+	"google.golang.org/grpc"
+	"log"
+	"msg/msgLogic/pb/gateway"
 )
 
 var GatewayRpcClient gateway.GatewayClient
 
-func InitGatewayRpcClient() {
-	address := "127.0.0.1:10000"
+func InitRpcClient() {
+	address := "127.0.0.1:10010"
 	log.Println("gateway rpc client start", address)
 	conn, err := grpc.Dial(address, grpc.WithInsecure()) // 连接
 	if err != nil {

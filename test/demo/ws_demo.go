@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/url"
 	"time"
@@ -16,26 +15,28 @@ func loop() {
 	for {
 		u := url.URL{Scheme: "ws", Host: *addr, Path: "/ws"}
 		q := u.Query()
-		q.Set("authToken", "001")
+		q.Set("token", "001")
 		u.RawQuery = q.Encode()
 		c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 		if err != nil {
+			log.Println("writeMessage error")
 			continue
 		}
 		// 循环读写消息
 		for {
 			error := c.WriteMessage(websocket.TextMessage, []byte("hello, I am client"))
 			if error != nil {
-				fmt.Println("writeMessage error")
+				log.Println("writeMessage error")
 			}
 
-			time.Sleep(time.Second)
+			time.Sleep(1 * time.Second)
 			_, message, err := c.ReadMessage()
 			if err != nil {
+                log.Println("read message error",err)
 				break
 			}
-			fmt.Println("read message:", string(message[:]))
-			time.Sleep(3 * time.Second)
+			log.Println("read message:", string(message[:]))
+			time.Sleep(1 * time.Second)
 			// log.Printf("recv: %s", message)
 		}
 		c.Close()
@@ -46,7 +47,7 @@ func main() {
 	flag.Parse()
 	log.SetFlags(0)
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 1; i++ {
 		go loop()
 	}
 

@@ -1,17 +1,12 @@
 package gateway
 
-import "github.com/pkg/errors"
-
-func getUserFromAuthToken(authToken string) (string, error) {
-	//todo should get user token from auth logic server
-
-	return authToken, nil
-
-	if authToken == "001" {
-		// this token is user identification
-		token := "kuip-gaosheng"
-		return token, nil
+func getLinkKeyFromToken(token string) (string, error) {
+	//todo
+	//mock get user token from auth logic server
+	tokenKey := map[string]string{
+		"001":"001",
+		"002":"002",
 	}
 
-	return "", errors.New("authToken is invalid")
+	return tokenKey[token],nil
 }

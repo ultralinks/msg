@@ -1,12 +1,9 @@
-// Copyright 2013 The Gorilla WebSocket Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package gateway
 
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -48,11 +45,6 @@ type Client struct {
 	send chan []byte
 }
 
-// readPump pumps messages from the websocket connection to the hub.
-//
-// The application runs readPump in a per-connection goroutine. The application
-// ensures that there is at most one reader on a connection by executing all
-// reads from this goroutine.
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
@@ -125,18 +117,19 @@ func (c *Client) writePump() {
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	//locaalhost:9000/ws?token=sdlfjskdjfkdgjsdf
-	//get token from request
-	authToken := r.FormValue("authToken")
+	token := r.FormValue("token")
 
 	//todo rpc user logic server
-	userToken, authErr := getUserFromAuthToken(authToken)
+	linkKey, authErr := getLinkKeyFromToken(token)
+	log.Println("linkKey connect", linkKey)
 
 	if authErr != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("authToken is invalid, connection refused"))
+		w.Write([]byte("token is invalid, connection refused"))
 		return
 	}
 
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		w.Write([]byte("connection fail"))
@@ -147,9 +140,9 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
 	client.hub.register <- client
 
-	UserClientMap.Join(userToken, client)
+	LinkClientMap.Join(linkKey, client)
 
-	//log.Println("userClientMap", UserClientMap)
+	//log.Println("linkClientMap", LinkClientMap)
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
 	go client.writePump()

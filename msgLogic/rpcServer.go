@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
+	"msg/msgLogic/parseRequest"
 	"msg/msgLogic/pb/msgLogic"
 	"net"
 )
@@ -15,7 +16,7 @@ type server struct{}
 func (s *server) ParseMsg(ctx context.Context, in *msgLogic.ParseMsgRequest) (*msgLogic.ParseMsgResponse, error) {
 	data := in.Data
 
-	ParseRequest(data)
+	parseRequest.ParseRequest(data)
 
 	result := &msgLogic.ParseMsgResponse{
 		Status: "1",
@@ -25,7 +26,7 @@ func (s *server) ParseMsg(ctx context.Context, in *msgLogic.ParseMsgRequest) (*m
 
 func RunRpcServer() {
 	fmt.Println("start msgLogic rpc server")
-	address := "0.0.0.0:10001"
+	address := "0.0.0.0:10009"
 	lis, err := net.Listen("tcp", address)
 
 	log.Println("rpc server start and listen", address)

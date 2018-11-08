@@ -1,37 +1,36 @@
 package gateway
 
 import (
-	"fmt"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
+	"msg/gateway"
+	pbGateway "msg/gateway/pb/gateway"
 	"net"
 )
 
 type server struct{}
 
-func (s *server) ReceiveSendData(ctx context.Context, in *SendDataRequest) (*SendDataResponse, error) {
+func (s *server) ReceiveSendData(ctx context.Context, in *pbGateway.SendDataRequest) (*pbGateway.SendDataResponse, error) {
 	token := in.Token
 	data := in.Data
 
-	HubObj.sendcast <- SendData{
-		token: token,
-		data:  data,
+	//HubObj.Sendcast <- sendData
+	gateway.HubObj.Sendcast <- &gateway.SendData{
+		Token: token,
+		Data:  data,
 	}
 
-	result := &SendDataResponse{
+	result := &pbGateway.SendDataResponse{
 		Status: "1",
 	}
 	return result, nil
 }
 
 func RunRpcServer() {
-	fmt.Println("start gateway rpc server")
-	address := "0.0.0.0:10000"
+	address := "0.0.0.0:10010"
 	lis, err := net.Listen("tcp", address)
-
-	log.Println("rpc server start and listen", address)
 
 	if err != nil {
 		log.Println("failed to listen: %v", err)
@@ -39,7 +38,7 @@ func RunRpcServer() {
 
 	s := grpc.NewServer()
 
-	RegisterGatewayServer(s, &server{})
+	pbGateway.RegisterGatewayServer(s, &server{})
 
 	reflection.Register(s)
 	if err := s.Serve(lis); err != nil {
