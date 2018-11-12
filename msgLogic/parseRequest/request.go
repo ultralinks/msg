@@ -4,9 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"time"
+
 	"msg/msgLogic/app"
 	"msg/msgLogic/pb/gateway"
-	"time"
+	convLinkService "msg/msgLogic/service/convLink"
+	linkService "msg/msgLogic/service/link"
+	"msg/msgLogic/service/model"
+	msgService "msg/msgLogic/service/msg"
+	msgConvService "msg/msgLogic/service/msgConv"
 )
 
 type Message struct {
@@ -25,7 +31,7 @@ type Message struct {
 type Request struct {
 	Action string                     `json:"action"`
 	Data   map[string]json.RawMessage `json:"data"`
-	ConvId string                     `json:"convId"`
+	ConvId int                        `json:"convId"`
 	From   string                     `json:"from"`
 }
 
@@ -42,12 +48,26 @@ func ParseRequest(requestByte []byte) {
 	switch request.Action {
 	// data.action==im, get ConvId and get to users token, then put response to gateway
 	case "im":
-		ConvId := request.ConvId
-		linkKeys := getLinkKeyByConvId(ConvId)
+		fromLink, err := linkService.GetByKey(request.From)
+		if err != nil {
+			log.Println("get link by key err", err)
+			return
+		}
+
+		links, err := getLinksByConvId(request.ConvId)
+		if err != nil {
+			log.Println("get links by convId err", err)
+			return
+		}
+
+		err = storeMsg(request, fromLink.Id)
+		if err != nil {
+			log.Println("storeMsg err", err)
+		}
 
 		data := requestByte
-		for _, token := range linkKeys {
-			receiveSendData(token, data)
+		for _, link := range links {
+			receiveSendData(link.Key, data)
 		}
 
 	case "listHistory":
@@ -73,10 +93,39 @@ func receiveSendData(token string, data []byte) {
 
 }
 
-//mock param ConvId return linkKeys
-func getLinkKeyByConvId(ConvId string) []string {
-	if ConvId == "11111" {
-		return []string{"001", "002"}
+//从 conv 表、和 link 表找出来，该convId 下有哪些 linkKey
+func getLinksByConvId(convId int) ([]model.Link, error) {
+	links, err := convLinkService.ListLink(convId)
+	return *links, err
+}
+
+//存储消息: msg msg_conv conv_link
+func storeMsg(r Request, fromLinkId int) error {
+	data, err := json.Marshal(r.Data)
+	if err != nil {
+		return err
 	}
-	return []string{}
+
+	now := time.Now()
+	msg := &model.Msg{
+		Data:       string(data),
+		FromLinkId: fromLinkId,
+		Created:    now,
+		Updated:    now,
+	}
+	err = msgService.Create(msg)
+	if err != nil {
+		return err
+	}
+
+	msgConv := model.MsgConv{
+		MsgId:  msg.Id,
+		ConvId: r.ConvId,
+	}
+	err = msgConvService.Create(&msgConv)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

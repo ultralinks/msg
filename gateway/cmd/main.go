@@ -1,14 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
-	"msg/gateway"
-	"msg/gateway/app"
-	gatewayService "msg/gateway/service/gateway"
 	"net/http"
 	_ "net/http/pprof"
 
-	"github.com/gin-gonic/gin/json"
+	"msg/gateway"
+	"msg/gateway/app"
+	gatewayService "msg/gateway/service/gateway"
 )
 
 func main() {
