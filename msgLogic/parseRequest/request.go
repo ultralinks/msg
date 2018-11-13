@@ -9,6 +9,7 @@ import (
 	"msg/msgLogic/app"
 	"msg/msgLogic/pb/gateway"
 	convLinkService "msg/msgLogic/service/convLink"
+	convSendService "msg/msgLogic/service/convSend"
 	linkService "msg/msgLogic/service/link"
 	"msg/msgLogic/service/model"
 	msgService "msg/msgLogic/service/msg"
@@ -60,7 +61,7 @@ func ParseRequest(requestByte []byte) {
 			return
 		}
 
-		err = storeMsg(request, fromLink.Id)
+		err = storeMsg(request, fromLink.Id, links)
 		if err != nil {
 			log.Println("storeMsg err", err)
 		}
@@ -93,20 +94,19 @@ func receiveSendData(token string, data []byte) {
 
 }
 
-//从 conv 表、和 link 表找出来，该convId 下有哪些 linkKey
 func getLinksByConvId(convId int) ([]model.Link, error) {
 	links, err := convLinkService.ListLink(convId)
 	return *links, err
 }
 
-//存储消息: msg msg_conv conv_link
-func storeMsg(r Request, fromLinkId int) error {
+func storeMsg(r Request, fromLinkId int, links []model.Link) error {
 	data, err := json.Marshal(r.Data)
 	if err != nil {
 		return err
 	}
-
 	now := time.Now()
+
+	//msg
 	msg := &model.Msg{
 		Data:       string(data),
 		FromLinkId: fromLinkId,
@@ -118,11 +118,27 @@ func storeMsg(r Request, fromLinkId int) error {
 		return err
 	}
 
+	//msg_conv
 	msgConv := model.MsgConv{
 		MsgId:  msg.Id,
 		ConvId: r.ConvId,
 	}
 	err = msgConvService.Create(&msgConv)
+	if err != nil {
+		return err
+	}
+
+	//conv_send
+	for _, link := range links {
+		err = convSendService.Create(&model.ConvSend{
+			MsgId:    msg.Id,
+			ConvId:   r.ConvId,
+			ToLinkId: link.Id,
+			Status:   0,
+			Created:  now,
+			Updated:  now,
+		})
+	}
 	if err != nil {
 		return err
 	}

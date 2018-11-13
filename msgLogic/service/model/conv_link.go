@@ -2,7 +2,7 @@ package model
 
 type ConvLink struct {
 	ConvId   int
-	LinkId   string
+	LinkId   int
 	IsMute   int
 	IsIgnore int
 	Created  string
