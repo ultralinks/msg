@@ -27,9 +27,11 @@ func ParseRequest(requestByte []byte) {
 	case "msg-im":
 		MsgIm(request, requestByte)
 
-	case "msg-listHistory":
-
 	case "msg-read":
+		MsgRead(request, requestByte)
+
+	case "msg-listHistory":
+		MsgListHistory(request)
 
 	case "conv-create":
 
