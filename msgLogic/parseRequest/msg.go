@@ -21,7 +21,8 @@ func MsgIm(r Request, requestByte []byte) {
 
 	param := r.Param
 	convId := param["convId"].(string)
-	fromLink, err := linkService.GetByKey(param["fromLinkKey"].(string))
+	msgKey := param["msgKey"].(string)
+	fromLink, err := linkService.GetByKey(r.LinkKey)
 	if err != nil {
 		log.Println("get link by key err", err)
 		return
@@ -34,7 +35,7 @@ func MsgIm(r Request, requestByte []byte) {
 	}
 
 	//存储msg
-	err = storeMsg(links, string(data), fromLink.Id, convId)
+	err = storeMsg(links, string(data), fromLink.Id, convId, msgKey)
 	if err != nil {
 		log.Println("storeMsg err", err)
 	}
@@ -72,7 +73,7 @@ func MsgRead(r Request, requestByte []byte) {
 func MsgListHistory(r Request) {
 	param := r.Param
 	convId := param["convId"].(string)
-	link, err := linkService.GetByKey(param["linkKey"].(string))
+	link, err := linkService.GetByKey(r.LinkKey)
 	if err != nil {
 		log.Println("get link by key err", err)
 		return
@@ -95,12 +96,12 @@ func getLinksByConvId(convId string) ([]model.Link, error) {
 	return *links, err
 }
 
-func storeMsg(links []model.Link, data, fromLinkId, convId string) error {
+func storeMsg(links []model.Link, data, fromLinkId, convId, msgKey string) error {
 	now := time.Now()
 	//msg
 	msg := model.Msg{
 		Id:         util.GetRandomString(11),
-		Key:        util.GetRandomString(11),
+		Key:        msgKey,
 		Data:       data,
 		FromLinkId: fromLinkId,
 		Created:    now,

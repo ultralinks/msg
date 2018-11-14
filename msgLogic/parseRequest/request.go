@@ -12,9 +12,10 @@ import (
 )
 
 type Request struct {
-	Action string                     `json:"action"`
-	Data   map[string]json.RawMessage `json:"data"`
-	Param  map[string]interface{}     `json:"param"`
+	Action  string                     `json:"action"`
+	LinkKey string                     `json:"linkKey"`
+	Param   map[string]interface{}     `json:"param"`
+	Data    map[string]json.RawMessage `json:"data"`
 }
 
 func ParseRequest(requestByte []byte) {
@@ -34,12 +35,20 @@ func ParseRequest(requestByte []byte) {
 		MsgListHistory(request)
 
 	case "conv-create":
+		ConvCreate(request, requestByte)
 
 	case "conv-list":
+		ConvList(request)
 
-	case "conv-invite":
+	case "conv-delete":
+
+	case "conv-join":
 
 	case "conv-leave":
+
+	case "conv-inviteLinks":
+
+	case "conv-removeLinks":
 
 	}
 }

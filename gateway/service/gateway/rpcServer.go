@@ -18,8 +18,8 @@ func (s *server) ReceiveSendData(ctx context.Context, in *pbGateway.SendDataRequ
 
 	//HubObj.Sendcast <- sendData
 	gateway.HubObj.Sendcast <- &gateway.SendData{
-		Token: token,
-		Data:  data,
+		Key:  token,
+		Data: data,
 	}
 
 	result := &pbGateway.SendDataResponse{

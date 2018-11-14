@@ -4,8 +4,8 @@ import "time"
 
 type Conv struct {
 	Id      string
-	Name    string
 	Key     string
+	Name    string
 	Created time.Time
 	Updated time.Time
 }

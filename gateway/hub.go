@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"fmt"
+
 	"msg/gateway/service/msgLogic"
 )
 
@@ -9,8 +10,8 @@ var HubObj = NewHub()
 
 //token is a user, data is send by socket
 type SendData struct {
-	Token string
-	Data  []byte
+	Key  string
+	Data []byte
 }
 
 type Hub struct {
@@ -48,16 +49,10 @@ func (h *Hub) Run() {
 			Client_DESC()
 		case request := <-h.broadcast:
 			fmt.Println("**read from broadcast", string(request[:]))
-			//todo rpc to msgLogic, parse message
 			msgLogic.ParseMsg(request)
-			//var sendData = &SendData{
-			//	Token: "001",
-			//	Data:  []byte("hi,I am new server"),
-			//}
-			//HubObj.Sendcast <- sendData
 		case sendData := <-h.Sendcast:
-			fmt.Println("send from sendCast", sendData.Token, string(sendData.Data)[:])
-			for _, client := range LinkClientMap.linkKey2Client[sendData.Token] {
+			fmt.Println("send from sendCast", sendData.Key, string(sendData.Data)[:])
+			for _, client := range LinkClientMap.linkKey2Client[sendData.Key] {
 				client.send <- sendData.Data
 			}
 		}
