@@ -1,6 +1,6 @@
 package model
 
 type MsgConv struct {
-	MsgId  int
-	ConvId int
+	MsgId  string
+	ConvId string
 }

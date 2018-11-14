@@ -10,7 +10,7 @@ func Create(convLink *model.ConvLink) error {
 	return d.Error
 }
 
-func ListLink(convId int) (*[]model.Link, error) {
+func ListLink(convId string) (*[]model.Link, error) {
 	links := make([]model.Link, 0)
 	d := app.DB.Table("conv_link").Select("link.*").
 		Joins("JOIN link on link.id = conv_link.link_id").

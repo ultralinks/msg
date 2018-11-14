@@ -1,10 +1,13 @@
 package model
 
+import "time"
+
 type ConvLink struct {
-	ConvId   int
-	LinkId   int
+	ConvId   string
+	LinkId   string
+	IsOwner  int
 	IsMute   int
 	IsIgnore int
-	Created  string
-	Updated  string
+	Created  time.Time
+	Updated  time.Time
 }

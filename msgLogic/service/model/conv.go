@@ -1,9 +1,11 @@
 package model
 
+import "time"
+
 type Conv struct {
-	Id      int
+	Id      string
 	Name    string
 	Key     string
-	Created string
-	Updated string
+	Created time.Time
+	Updated time.Time
 }

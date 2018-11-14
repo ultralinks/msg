@@ -3,88 +3,52 @@ package parseRequest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
 	"msg/msgLogic/app"
 	"msg/msgLogic/pb/gateway"
-	convLinkService "msg/msgLogic/service/convLink"
-	convSendService "msg/msgLogic/service/convSend"
-	linkService "msg/msgLogic/service/link"
-	"msg/msgLogic/service/model"
-	msgService "msg/msgLogic/service/msg"
-	msgConvService "msg/msgLogic/service/msgConv"
 )
-
-type Message struct {
-	ConvId string
-	from   string
-	//msgType        string // text image video audio
-
-	//text     string
-	//image    string
-	//video    string
-	//audio    string
-	//location string
-	data string
-}
 
 type Request struct {
 	Action string                     `json:"action"`
 	Data   map[string]json.RawMessage `json:"data"`
-	ConvId int                        `json:"convId"`
-	From   string                     `json:"from"`
+	Param  map[string]interface{}     `json:"param"`
 }
-
-//type Response struct {
-//	action  string
-//	content Message
-//	headers struct{}
-//}
 
 func ParseRequest(requestByte []byte) {
 	request := Request{}
 	json.Unmarshal(requestByte, &request)
+	fmt.Println("request: ", request)
 
+	//处理消息
 	switch request.Action {
-	// data.action==im, get ConvId and get to users token, then put response to gateway
-	case "im":
-		fromLink, err := linkService.GetByKey(request.From)
-		if err != nil {
-			log.Println("get link by key err", err)
-			return
-		}
+	case "msg-im":
+		MsgIm(request, requestByte)
 
-		links, err := getLinksByConvId(request.ConvId)
-		if err != nil {
-			log.Println("get links by convId err", err)
-			return
-		}
+	case "msg-listHistory":
 
-		err = storeMsg(request, fromLink.Id, links)
-		if err != nil {
-			log.Println("storeMsg err", err)
-		}
+	case "msg-read":
 
-		data := requestByte
-		for _, link := range links {
-			receiveSendData(link.Key, data)
-		}
+	case "conv-create":
 
-	case "listHistory":
+	case "conv-list":
 
-	case "listConv":
+	case "conv-invite":
+
+	case "conv-leave":
 
 	}
 }
 
-func receiveSendData(token string, data []byte) {
+func receiveSendData(key string, data []byte) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	//todo data 加工
 	_, err := app.GatewayRpcClient.ReceiveSendData(ctx, &gateway.SendDataRequest{
-		Token: token,
+		Token: key,
 		Data:  data,
 	})
 
@@ -92,56 +56,4 @@ func receiveSendData(token string, data []byte) {
 		log.Println("rpc gatewayRpcClient", err)
 	}
 
-}
-
-func getLinksByConvId(convId int) ([]model.Link, error) {
-	links, err := convLinkService.ListLink(convId)
-	return *links, err
-}
-
-func storeMsg(r Request, fromLinkId int, links []model.Link) error {
-	data, err := json.Marshal(r.Data)
-	if err != nil {
-		return err
-	}
-	now := time.Now()
-
-	//msg
-	msg := &model.Msg{
-		Data:       string(data),
-		FromLinkId: fromLinkId,
-		Created:    now,
-		Updated:    now,
-	}
-	err = msgService.Create(msg)
-	if err != nil {
-		return err
-	}
-
-	//msg_conv
-	msgConv := model.MsgConv{
-		MsgId:  msg.Id,
-		ConvId: r.ConvId,
-	}
-	err = msgConvService.Create(&msgConv)
-	if err != nil {
-		return err
-	}
-
-	//conv_send
-	for _, link := range links {
-		err = convSendService.Create(&model.ConvSend{
-			MsgId:    msg.Id,
-			ConvId:   r.ConvId,
-			ToLinkId: link.Id,
-			Status:   0,
-			Created:  now,
-			Updated:  now,
-		})
-	}
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
