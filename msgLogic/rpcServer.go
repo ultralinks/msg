@@ -17,10 +17,14 @@ type server struct{}
 func (s *server) ParseMsg(ctx context.Context, in *msgLogic.ParseMsgRequest) (*msgLogic.ParseMsgResponse, error) {
 	data := in.Data
 
-	parseRequest.ParseRequest(data)
+	linkKeys, data, err := parseRequest.ParseRequest(data)
+	if err != nil {
+		return nil, err
+	}
 
 	result := &msgLogic.ParseMsgResponse{
-		Status: "1",
+		LinkKeys: linkKeys,
+		Data:     data,
 	}
 	return result, nil
 }

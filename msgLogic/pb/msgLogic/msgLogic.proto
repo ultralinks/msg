@@ -15,5 +15,6 @@ message ParseMsgRequest {
 }
 
 message ParseMsgResponse {
-    string status = 1;
+    repeated string linkKeys = 1;
+    bytes data = 2;
 }

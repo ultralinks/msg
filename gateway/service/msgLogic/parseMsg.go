@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func ParseMsg(request []byte) {
+func ParseMsg(request []byte) (linkKeys []string, data []byte) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -16,9 +16,12 @@ func ParseMsg(request []byte) {
 		Data: request,
 	}
 
-	log.Println("parseMsg start")
-	app.MsgLogicRpcClient.ParseMsg(ctx, &parseMsgRequest)
-	log.Println("parseMsg end")
+	response, err := app.MsgLogicRpcClient.ParseMsg(ctx, &parseMsgRequest)
+	if err != nil {
+		log.Println("rpc parseMsg error", err)
 
-	return
+		return nil, nil
+	}
+
+	return response.LinkKeys, response.Data
 }

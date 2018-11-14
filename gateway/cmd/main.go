@@ -8,12 +8,10 @@ import (
 
 	"msg/gateway"
 	"msg/gateway/app"
-	gatewayService "msg/gateway/service/gateway"
 )
 
 func main() {
 	go gateway.HubObj.Run()
-	go gatewayService.RunRpcServer()
 	app.InitRpcClient()
 
 	http.HandleFunc("/count", func(w http.ResponseWriter, r *http.Request) {
@@ -26,6 +24,7 @@ func main() {
 		w.Write(data)
 	})
 
+	//localhost/ws?token=001
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		gateway.ServeWs(gateway.HubObj, w, r)
 	})

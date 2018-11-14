@@ -49,7 +49,15 @@ func (h *Hub) Run() {
 			Client_DESC()
 		case request := <-h.broadcast:
 			fmt.Println("**read from broadcast", string(request[:]))
-			msgLogic.ParseMsg(request)
+			linkKeys, data := msgLogic.ParseMsg(request)
+
+			for _, linkKey := range linkKeys {
+				sendData := &SendData{
+					Key:  linkKey,
+					Data: data,
+				}
+				h.Sendcast <- sendData
+			}
 		case sendData := <-h.Sendcast:
 			fmt.Println("send from sendCast", sendData.Key, string(sendData.Data)[:])
 			for _, client := range LinkClientMap.linkKey2Client[sendData.Key] {

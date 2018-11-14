@@ -27,7 +27,6 @@ func ParseRequest(requestByte []byte) {
 	switch request.Action {
 	case "msg-im":
 		MsgIm(request, requestByte)
-
 	case "msg-read":
 		MsgRead(request, requestByte)
 
@@ -58,7 +57,7 @@ func receiveSendData(key string, data []byte) {
 	defer cancel()
 
 	//todo data 加工
-	_, err := app.GatewayRpcClient.ReceiveSendData(ctx, &gateway.SendDataRequest{
+	_, err := app.GatewayRpcClient.ReceiveSendData(ctx, &gateway_bak.SendDataRequest{
 		Token: key,
 		Data:  data,
 	})
