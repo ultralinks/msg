@@ -12,14 +12,16 @@ import (
 	"msg/msgLogic/util"
 )
 
-func ConvCreate(r Request, requestByte []byte) {
+func ConvCreate(r Request) ([]string, error) {
+	linkKeys := make([]string, 0)
+
 	param := r.Param
 	convKey := param["convKey"].(string)
 	name := param["name"].(string)
 	links, err := getLinksByLinkKeys(param["linkKeys"].([]string))
 	if err != nil {
 		log.Println("get links by linkKeys err", err)
-		return
+		return linkKeys, err
 	}
 
 	//conv
@@ -49,26 +51,31 @@ func ConvCreate(r Request, requestByte []byte) {
 		convLinkService.Create(&convLink)
 	}
 
-	receiveSendData(r.LinkKey, requestByte)
+	linkKeys = append(linkKeys, r.LinkKey)
+	return linkKeys, nil
 }
 
-func ConvList(r Request) {
+func ConvList(r Request) ([]string, []byte, error) {
+	linkKeys := make([]string, 0)
+	responseByte := make([]byte, 0)
+
 	link, err := linkService.GetByKey(r.LinkKey)
 	if err != nil {
 		log.Println("get link by key err", err)
-		return
+		return linkKeys, responseByte, err
 	}
 
 	convs, err := convService.ListByLinkId(link.Id)
 	if err != nil {
 		log.Println("listConv err", err)
 	}
-	convsByte, err := json.Marshal(convs)
+	responseByte, err = json.Marshal(convs)
 	if err != nil {
 		log.Println("convsByte err", err)
 	}
 
-	receiveSendData(link.Key, convsByte)
+	linkKeys = append(linkKeys, link.Key)
+	return linkKeys, responseByte, nil
 }
 
 func getLinksByLinkKeys(linkKeys []string) ([]model.Link, error) {

@@ -13,10 +13,13 @@ import (
 	"msg/msgLogic/util"
 )
 
-func MsgIm(r Request, requestByte []byte) {
+func MsgIm(r Request) ([]string, error) {
+	linkKeys := make([]string, 0)
+
 	data, err := json.Marshal(r.Data)
 	if err != nil {
 		log.Println("json.Marshal data err", err)
+		return linkKeys, err
 	}
 
 	param := r.Param
@@ -25,34 +28,38 @@ func MsgIm(r Request, requestByte []byte) {
 	fromLink, err := linkService.GetByKey(r.LinkKey)
 	if err != nil {
 		log.Println("get link by key err", err)
-		return
+		return linkKeys, err
 	}
 
 	//通过convId找到links
 	links, err := getLinksByConvId(convId)
 	if err != nil {
 		log.Println("get links by convId err", err)
+		return linkKeys, err
 	}
 
 	//存储msg
 	err = storeMsg(links, string(data), fromLink.Id, convId, msgKey)
 	if err != nil {
 		log.Println("storeMsg err", err)
+		return linkKeys, err
 	}
 
-	//rpc到gateway发消息
 	for _, link := range links {
-		receiveSendData(link.Key, requestByte)
+		linkKeys = append(linkKeys, link.Key)
 	}
+	return linkKeys, nil
 }
 
-func MsgRead(r Request, requestByte []byte) {
+func MsgRead(r Request) ([]string, error) {
+	linkKeys := make([]string, 0)
+
 	param := r.Param
 	msgId := param["msgId"].(string)
 	toLink, err := linkService.GetByKey(param["toLinkKey"].(string))
 	if err != nil {
 		log.Println("get link by key err", err)
-		return
+		return linkKeys, err
 	}
 
 	whereMap := map[string]interface{}{
@@ -67,28 +74,33 @@ func MsgRead(r Request, requestByte []byte) {
 		log.Println("update read status err", err)
 	}
 
-	receiveSendData(toLink.Key, requestByte)
+	linkKeys = append(linkKeys, toLink.Id)
+	return linkKeys, nil
 }
 
-func MsgListHistory(r Request) {
+func MsgListHistory(r Request) ([]string, []byte, error) {
+	linkKeys := make([]string, 0)
+	responseByte := make([]byte, 0)
+
 	param := r.Param
 	convId := param["convId"].(string)
 	link, err := linkService.GetByKey(r.LinkKey)
 	if err != nil {
 		log.Println("get link by key err", err)
-		return
+		return linkKeys, responseByte, err
 	}
 
 	msgs, err := msgService.ListMsg(convId)
 	if err != nil {
 		log.Println("listMsg err", err)
 	}
-	msgsByte, err := json.Marshal(msgs)
+	responseByte, err = json.Marshal(msgs)
 	if err != nil {
-		log.Println("msgsByte err", err)
+		log.Println("responseByte err", err)
 	}
 
-	receiveSendData(link.Key, msgsByte)
+	linkKeys = append(linkKeys, link.Id)
+	return linkKeys, responseByte, nil
 }
 
 func getLinksByConvId(convId string) ([]model.Link, error) {

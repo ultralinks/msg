@@ -5,8 +5,6 @@ import (
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"msg/msgLogic/app"
-	"msg/msgLogic/httpServer/handler/Conv"
-	"msg/msgLogic/httpServer/handler/conv_link"
 	_ "order-server/docs"
 )
 
@@ -25,9 +23,6 @@ func Start() {
 	if gin.Mode() == gin.DebugMode {
 		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
-
-	r.POST("/conv", conv.Create)
-	r.POST("/conv-link", conv_link.Create)
 
 	r.Run(app.Config.Http.Domain + ":" + app.Config.Http.Port) // listen and serve on 0.0.0.0:8080
 }
