@@ -1,14 +1,9 @@
 package parseRequest
 
 import (
-	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
-	"time"
-
-	"msg/msgLogic/app"
-	"msg/msgLogic/pb/gateway"
 )
 
 type Request struct {
@@ -18,52 +13,64 @@ type Request struct {
 	Data    map[string]json.RawMessage `json:"data"`
 }
 
-func ParseRequest(requestByte []byte) {
+func ParseRequest(requestByte []byte) ([]string, []byte, error) {
 	request := Request{}
 	json.Unmarshal(requestByte, &request)
 	fmt.Println("request: ", request)
 
-	//处理消息
+	var linkKeys []string
+	var err error
+	responseByte := requestByte
+
+	//处理request
 	switch request.Action {
 	case "msg-im":
-		MsgIm(request, requestByte)
+		linkKeys, err = MsgIm(request)
+
 	case "msg-read":
-		MsgRead(request, requestByte)
+		linkKeys, err = MsgRead(request)
 
 	case "msg-listHistory":
-		MsgListHistory(request)
+		linkKeys, responseByte, err = MsgListHistory(request)
 
 	case "conv-create":
-		ConvCreate(request, requestByte)
+		linkKeys, err = ConvCreate(request)
 
 	case "conv-list":
-		ConvList(request)
+		linkKeys, responseByte, err = ConvList(request)
 
 	case "conv-delete":
+		linkKeys, err = ConvDelete(request)
 
 	case "conv-join":
+		linkKeys, err = ConvJoin(request)
 
 	case "conv-leave":
+		linkKeys, err = ConvLeave(request)
 
 	case "conv-inviteLinks":
+		linkKeys, err = ConvInviteLinks(request)
 
 	case "conv-removeLinks":
+		linkKeys, err = ConvRemoveLinks(request)
 
+	default:
+		err = errors.New("error request action")
 	}
+
+	return linkKeys, responseByte, err
 }
 
+/*
 func receiveSendData(key string, data []byte) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-
-	//todo data 加工
 	_, err := app.GatewayRpcClient.ReceiveSendData(ctx, &gateway_bak.SendDataRequest{
 		Token: key,
 		Data:  data,
 	})
-
 	if err != nil {
 		log.Println("rpc gatewayRpcClient", err)
 	}
-
 }
+*/
