@@ -2,6 +2,7 @@ package parseRequest
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -21,7 +22,7 @@ func ParseRequest(requestByte []byte) ([]string, []byte, error) {
 	var err error
 	responseByte := requestByte
 
-	//处理消息
+	//处理request
 	switch request.Action {
 	case "msg-im":
 		linkKeys, err = MsgIm(request)
@@ -39,15 +40,22 @@ func ParseRequest(requestByte []byte) ([]string, []byte, error) {
 		linkKeys, responseByte, err = ConvList(request)
 
 	case "conv-delete":
+		linkKeys, err = ConvDelete(request)
 
 	case "conv-join":
+		linkKeys, err = ConvJoin(request)
 
 	case "conv-leave":
+		linkKeys, err = ConvLeave(request)
 
 	case "conv-inviteLinks":
+		linkKeys, err = ConvInviteLinks(request)
 
 	case "conv-removeLinks":
+		linkKeys, err = ConvRemoveLinks(request)
 
+	default:
+		err = errors.New("error request action")
 	}
 
 	return linkKeys, responseByte, err
