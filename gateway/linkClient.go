@@ -5,50 +5,50 @@ import (
 )
 
 // store user and client map
-var LinkClientMap = NewLinkClientMap()
+var LinkDeviceMap = NewLinkDeviceMap()
 
-type linkClientMap struct {
+type linkDeviceMap struct {
 	rwMutex        sync.RWMutex
-	linkKey2Client map[string][]*Client
-	client2LinkKey map[*Client]string
+	linkKey2Device map[string][]*Client
+	device2LinkKey map[*Client]string
 }
 
-func NewLinkClientMap() *linkClientMap {
-	return &linkClientMap{
-		linkKey2Client: make(map[string][]*Client),
-		client2LinkKey: make(map[*Client]string),
+func NewLinkDeviceMap() *linkDeviceMap {
+	return &linkDeviceMap{
+		linkKey2Device: make(map[string][]*Client),
+		device2LinkKey: make(map[*Client]string),
 	}
 }
 
-func (userClient *linkClientMap) Run() {
+func (userClient *linkDeviceMap) Run() {
 
 }
 
-func (userClient *linkClientMap) Join(token string, client *Client) {
+func (userClient *linkDeviceMap) Join(device string, client *Client) {
 	userClient.rwMutex.Lock()
 	defer userClient.rwMutex.Unlock()
 
-	userClient.linkKey2Client[token] = append(userClient.linkKey2Client[token], client)
-	userClient.client2LinkKey[client] = token
+	userClient.linkKey2Device[device] = append(userClient.linkKey2Device[device], client)
+	userClient.device2LinkKey[client] = device
 
 	return
 }
 
-func (userClient *linkClientMap) Leave(client *Client) {
+func (userClient *linkDeviceMap) Leave(client *Client) {
 	userClient.rwMutex.Lock()
 	defer userClient.rwMutex.Unlock()
 
-	token := userClient.client2LinkKey[client]
-	delete(userClient.client2LinkKey, client)
+	device := userClient.device2LinkKey[client]
+	delete(userClient.device2LinkKey, client)
 
-	for k, v := range userClient.linkKey2Client[token] {
+	for k, v := range userClient.linkKey2Device[device] {
 		if v == client {
-			userClient.linkKey2Client[token] = append(userClient.linkKey2Client[token][:k], userClient.linkKey2Client[token][k+1:]...)
+			userClient.linkKey2Device[device] = append(userClient.linkKey2Device[device][:k], userClient.linkKey2Device[device][k+1:]...)
 		}
 	}
 
-	if len(userClient.linkKey2Client[token]) == 0 {
-		delete(userClient.linkKey2Client, token)
+	if len(userClient.linkKey2Device[device]) == 0 {
+		delete(userClient.linkKey2Device, device)
 	}
 
 	return

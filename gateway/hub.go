@@ -39,8 +39,7 @@ func (h *Hub) Run() {
 			h.clients[client] = true
 			Client_INCR()
 		case client := <-h.unregister:
-			//todo delete client & token in UserClient
-			LinkClientMap.Leave(client)
+			LinkDeviceMap.Leave(client)
 
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
@@ -60,7 +59,7 @@ func (h *Hub) Run() {
 			}
 		case sendData := <-h.Sendcast:
 			fmt.Println("send from sendCast", sendData.Key, string(sendData.Data)[:])
-			for _, client := range LinkClientMap.linkKey2Client[sendData.Key] {
+			for _, client := range LinkDeviceMap.linkKey2Device[sendData.Key] {
 				client.send <- sendData.Data
 			}
 		}
