@@ -1,0 +1,88 @@
+definitions:
+  user.LoginByEmailRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  user.RegByEmailRequest:
+    properties:
+      email:
+        type: string
+      nick:
+        type: string
+      password:
+        type: string
+    required:
+    - nick
+    - email
+    - password
+    type: object
+info:
+  contact: {}
+  license: {}
+paths:
+  /user/loginByEmail:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user.LoginByEmailRequest'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "ok"}'
+          schema:
+            type: string
+        "400":
+          description: '{"error": "error info"}'
+          schema:
+            type: string
+        "500":
+          description: '{"error": "error info"}'
+          schema:
+            type: string
+      summary: 登录by邮箱
+      tags:
+      - 用户
+  /user/regByEmail:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user.RegByEmailRequest'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "ok"}'
+          schema:
+            type: string
+        "400":
+          description: '{"error": "error info"}'
+          schema:
+            type: string
+        "500":
+          description: '{"error": "error info"}'
+          schema:
+            type: string
+      summary: 注册by邮箱
+      tags:
+      - 用户
