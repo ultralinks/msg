@@ -1,4 +1,24 @@
 definitions:
+  app.CreateAppRequest:
+    properties:
+      desc:
+        type: string
+      key:
+        type: string
+      name:
+        type: string
+      orgId:
+        type: string
+      secret:
+        type: string
+    type: object
+  org.CreateOrgRequest:
+    properties:
+      desc:
+        type: string
+      name:
+        type: string
+    type: object
   user.LoginByEmailRequest:
     properties:
       email:
@@ -26,7 +46,93 @@ info:
   contact: {}
   license: {}
 paths:
-  /user/loginByEmail:
+  /app:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/app.CreateAppRequest'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "ok"}'
+          schema:
+            type: string
+        "400":
+          description: '{"error": "error info"}'
+          schema:
+            type: string
+        "500":
+          description: '{"error": "error info"}'
+          schema:
+            type: string
+      summary: 创建app
+      tags:
+      - app
+  /app/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: appId
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "ok"}'
+          schema:
+            type: string
+        "400":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+        "500":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+      summary: 获取app详情
+      tags:
+      - app
+  /apps/{orgId}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: orgId
+        in: path
+        name: orgId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "ok"}'
+          schema:
+            type: string
+        "400":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+        "500":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+      summary: 获取app列表
+      tags:
+      - app
+  /loginByEmail:
     post:
       consumes:
       - application/json
@@ -56,7 +162,87 @@ paths:
       summary: 登录by邮箱
       tags:
       - 用户
-  /user/regByEmail:
+  /org:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/org.CreateOrgRequest'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "ok"}'
+          schema:
+            type: string
+        "400":
+          description: '{"error": "error info"}'
+          schema:
+            type: string
+        "500":
+          description: '{"error": "error info"}'
+          schema:
+            type: string
+      summary: 创建组织
+      tags:
+      - 组织
+  /org/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: orgId
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "ok"}'
+          schema:
+            type: string
+        "400":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+        "500":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+      summary: 获取组织详情
+      tags:
+      - 组织
+  /orgs:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "ok"}'
+          schema:
+            type: string
+        "400":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+        "500":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+      summary: 获取组织列表
+      tags:
+      - 组织
+  /regByEmail:
     post:
       consumes:
       - application/json

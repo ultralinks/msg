@@ -1,17 +1,19 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"msg/userLogic/app"
 	_ "msg/userLogic/docs"
 	"msg/userLogic/httpServer/router"
+	"msg/userLogic/httpServer/router/middleware"
 )
 
 func main() {
 	app.InitConfig()
-
 	app.InitDB()
 
 	r := gin.Default()
@@ -25,7 +27,11 @@ func main() {
 		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
+	r.Use(middleware.CORSMiddleware())
 	router.RegisterV1Router(r)
+	r.Use(middleware.JWTMiddleware())
+	router.RegisterV1RouterJWT(r)
 
+	fmt.Println("starting server ...")
 	r.Run(app.Config.Http.Domain + ":" + app.Config.Http.Port)
 }

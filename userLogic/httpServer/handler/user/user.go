@@ -45,7 +45,7 @@ type UserResponse struct {
 // @Success 200 {string} string "{"msg": "ok"}"
 // @Failure 400 {string} json "{"error": "error info"}"
 // @Failure 500 {string} json "{"error": "error info"}"
-// @Router /user/regByEmail [post]
+// @Router /regByEmail [post]
 func RegByEmail(c *gin.Context) {
 	r := &RegByEmailRequest{}
 	if err := util.ParseRequest(c, r); err != nil {
@@ -81,7 +81,7 @@ func RegByEmail(c *gin.Context) {
 // @Success 200 {string} string "{"msg": "ok"}"
 // @Failure 400 {string} json "{"error": "error info"}"
 // @Failure 500 {string} json "{"error": "error info"}"
-// @Router /user/loginByEmail [post]
+// @Router /loginByEmail [post]
 func LoginByEmail(c *gin.Context) {
 	r := &LoginByEmailRequest{}
 	if err := util.ParseRequest(c, r); err != nil {

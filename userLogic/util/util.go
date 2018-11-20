@@ -53,23 +53,21 @@ func BuildJwtToken(key string, Claims jwt.MapClaims) (string, error) {
 }
 
 func ParseJwtToken(key, token string) (jwt.MapClaims, error) {
-	t, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+	t, _ := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-
 		return []byte(key), nil
 
 	})
 
-	if err != nil || !t.Valid {
-		return nil, err
-	}
+	//if err != nil || !t.Valid {
+	//	return nil, err
+	//}
 
 	if mc, ok := t.Claims.(jwt.MapClaims); ok {
 		return mc, nil
 	}
-
 	return nil, fmt.Errorf("interface.(jwt.MapClaims) error")
 }
 
