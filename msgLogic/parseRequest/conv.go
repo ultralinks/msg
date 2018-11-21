@@ -1,36 +1,58 @@
 package parseRequest
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"time"
 
 	convService "msg/msgLogic/service/conv"
 	convLinkService "msg/msgLogic/service/convLink"
+	convSendService "msg/msgLogic/service/convSend"
 	linkService "msg/msgLogic/service/link"
 	"msg/msgLogic/service/model"
+	msgService "msg/msgLogic/service/msg"
 	"msg/msgLogic/util"
 )
 
-func ConvCreate(r Request) ([]string, error) {
+//listConv中的每一项
+type ConvItem struct {
+	ConvId    string       `json:"convId"`
+	Conv      model.Conv   `json:"conv"`
+	Links     []model.Link `json:"links"`
+	LastMsg   model.Msg    `json:"lastMsg"`
+	UnreadNum int          `json:"unreadNum"`
+}
+
+func ConvCreate(r Request) ([]string, map[string]string, error) {
 	linkKeys := make([]string, 0)
+
+	link, _ := linkService.GetByKey(r.LinkKey)
 
 	param := r.Param
 	convKey := param["convKey"].(string)
+	convType := param["convType"].(string)
 	name := param["name"].(string)
 	links, err := getLinksByLinkKeys(param["linkKeys"].([]string))
 	if err != nil {
 		log.Println("get links by linkKeys err", err)
-		return linkKeys, err
 	}
 
-	//conv
+	//single type conv if existed
+	if convType == "single" {
+		existedConv, err := convService.GetByTwoLinkId(links[0].Id, links[1].Id)
+		if err != nil {
+			return linkKeys, map[string]string{}, err
+		}
+		return []string{link.Key}, map[string]string{"convId": existedConv.Id}, nil
+	}
+
+	//create conv
 	now := time.Now()
 	conv := model.Conv{
 		Id:      util.GetRandomString(11),
 		Key:     convKey,
 		Name:    name,
+		Type:    convType,
 		Created: now,
 		Updated: now,
 	}
@@ -39,7 +61,7 @@ func ConvCreate(r Request) ([]string, error) {
 		log.Println("create conv err", err)
 	}
 
-	//conv_link
+	//create conv_link
 	for _, link := range links {
 		isOwner := 0
 		if link.Key == r.LinkKey {
@@ -54,34 +76,41 @@ func ConvCreate(r Request) ([]string, error) {
 			Created:  now,
 		}
 		convLinkService.Create(&convLink)
-
 		linkKeys = append(linkKeys, link.Key)
 	}
 
-	return linkKeys, nil
+	return linkKeys, map[string]string{"convId": conv.Id}, err
 }
 
-func ConvList(r Request) ([]string, []byte, error) {
+func ConvList(r Request) ([]string, []ConvItem, error) {
 	linkKeys := make([]string, 0)
-	responseByte := make([]byte, 0)
 
-	link, err := linkService.GetByKey(r.LinkKey)
-	if err != nil {
-		log.Println("get link by key err", err)
-		return linkKeys, responseByte, err
-	}
+	link, _ := linkService.GetByKey(r.LinkKey)
 
+	//list convs
 	convs, err := convService.ListByLinkId(link.Id)
 	if err != nil {
 		log.Println("listConv err", err)
 	}
-	responseByte, err = json.Marshal(convs)
-	if err != nil {
-		log.Println("convsByte err", err)
+
+	//convs add links and lastMsg
+	convList := make([]ConvItem, 0)
+	for _, conv := range *convs {
+		links, _ := linkService.ListLink(conv.Id)
+		lastMsg, _ := msgService.GetByConvId(conv.Id)
+		unreadNum, _ := getUnreadNum(conv.Id, link.Id)
+		convItem := ConvItem{
+			ConvId:    conv.Id,
+			Conv:      conv,
+			Links:     *links,
+			LastMsg:   *lastMsg,
+			UnreadNum: unreadNum,
+		}
+		convList = append(convList, convItem)
 	}
 
 	linkKeys = append(linkKeys, link.Key)
-	return linkKeys, responseByte, nil
+	return linkKeys, convList, err
 }
 
 func ConvDelete(r Request) ([]string, error) {
@@ -89,12 +118,9 @@ func ConvDelete(r Request) ([]string, error) {
 
 	param := r.Param
 	convId := param["convId"].(string)
-	link, err := linkService.GetByKey(r.LinkKey)
-	if err != nil {
-		log.Println("get link by key err", err)
-		return linkKeys, err
-	}
+	link, _ := linkService.GetByKey(r.LinkKey)
 
+	//update convLink
 	whereMap := map[string]interface{}{
 		"conv_id": convId,
 		"link_id": link.Id,
@@ -103,12 +129,13 @@ func ConvDelete(r Request) ([]string, error) {
 		"is_ignore": 1,
 		"updated":   time.Now(),
 	}
-	if err := convLinkService.Update(whereMap, updateMap); err != nil {
+	err := convLinkService.Update(whereMap, updateMap)
+	if err != nil {
 		log.Println("update conv_link is_ignore err", err)
 	}
 
 	linkKeys = append(linkKeys, link.Id)
-	return linkKeys, nil
+	return linkKeys, err
 }
 
 func ConvJoin(r Request) ([]string, error) {
@@ -122,6 +149,7 @@ func ConvJoin(r Request) ([]string, error) {
 		return linkKeys, err
 	}
 
+	//create convLink
 	now := time.Now()
 	convLink := model.ConvLink{
 		ConvId:   convId,
@@ -132,12 +160,13 @@ func ConvJoin(r Request) ([]string, error) {
 		Created:  now,
 		Updated:  now,
 	}
-	if err := convLinkService.Create(&convLink); err != nil {
+	err = convLinkService.Create(&convLink)
+	if err != nil {
 		log.Println("create conv_link err", err)
 	}
 
 	linkKeys = append(linkKeys, link.Id)
-	return linkKeys, nil
+	return linkKeys, err
 }
 
 func ConvLeave(r Request) ([]string, error) {
@@ -151,16 +180,18 @@ func ConvLeave(r Request) ([]string, error) {
 		return linkKeys, err
 	}
 
+	//delete convLink
 	whereMap := map[string]interface{}{
 		"conv_id": convId,
 		"link_id": link.Id,
 	}
-	if err := convLinkService.Delete(whereMap); err != nil {
+	err = convLinkService.Delete(whereMap)
+	if err != nil {
 		log.Println("delete conv_link err", err)
 	}
 
 	linkKeys = append(linkKeys, link.Id)
-	return linkKeys, nil
+	return linkKeys, err
 }
 
 func ConvInviteLinks(r Request) ([]string, error) {
@@ -174,6 +205,7 @@ func ConvInviteLinks(r Request) ([]string, error) {
 		return linkKeys, err
 	}
 
+	//create convLink
 	now := time.Now()
 	for _, link := range links {
 		convLink := model.ConvLink{
@@ -186,7 +218,6 @@ func ConvInviteLinks(r Request) ([]string, error) {
 			Updated:  now,
 		}
 		convLinkService.Create(&convLink)
-
 		linkKeys = append(linkKeys, link.Key)
 	}
 
@@ -198,30 +229,26 @@ func ConvRemoveLinks(r Request) ([]string, error) {
 
 	param := r.Param
 	convId := param["convId"].(string)
-	fromLink, err := linkService.GetByKey(r.LinkKey)
-	if err != nil {
-		log.Println("get link by key err", err)
-		return linkKeys, err
-	}
-
-	fromConvLink, _ := convLinkService.Get(convId, fromLink.Id)
-	if fromConvLink.IsOwner != 1 {
-		return linkKeys, errors.New("only conv owner can remove conv")
-	}
-
+	fromLink, _ := linkService.GetByKey(r.LinkKey)
 	links, err := getLinksByLinkKeys(param["linkKeys"].([]string))
 	if err != nil {
 		log.Println("get links by linkKeys err", err)
 		return linkKeys, err
 	}
 
+	//owner == 1
+	fromConvLink, _ := convLinkService.Get(convId, fromLink.Id)
+	if fromConvLink.IsOwner != 1 {
+		return linkKeys, errors.New("only conv owner can remove conv")
+	}
+
+	//delete convLink
 	for _, link := range links {
 		whereMap := map[string]interface{}{
 			"conv_id": convId,
 			"link_id": link.Id,
 		}
 		convLinkService.Delete(whereMap)
-
 		linkKeys = append(linkKeys, link.Key)
 	}
 
@@ -239,4 +266,9 @@ func getLinksByLinkKeys(linkKeys []string) ([]model.Link, error) {
 		links = append(links, *link)
 	}
 	return links, err
+}
+
+func getUnreadNum(convId, linkId string) (int, error) {
+	num, err := convSendService.CountUnread(convId, linkId)
+	return num, err
 }

@@ -13,6 +13,12 @@ import (
 	"msg/msgLogic/util"
 )
 
+//消息记录
+type MsgHistory struct {
+	ConvId string      `json:"convId"`
+	Msgs   []model.Msg `json:"msgs"`
+}
+
 func MsgIm(r Request) ([]string, error) {
 	linkKeys := make([]string, 0)
 
@@ -25,11 +31,7 @@ func MsgIm(r Request) ([]string, error) {
 	param := r.Param
 	convId := param["convId"].(string)
 	msgKey := param["msgKey"].(string)
-	fromLink, err := linkService.GetByKey(r.LinkKey)
-	if err != nil {
-		log.Println("get link by key err", err)
-		return linkKeys, err
-	}
+	fromLink, _ := linkService.GetByKey(r.LinkKey)
 
 	//通过convId找到links
 	links, err := getLinksByConvId(convId)
@@ -56,12 +58,9 @@ func MsgRead(r Request) ([]string, error) {
 
 	param := r.Param
 	msgId := param["msgId"].(string)
-	toLink, err := linkService.GetByKey(param["toLinkKey"].(string))
-	if err != nil {
-		log.Println("get link by key err", err)
-		return linkKeys, err
-	}
+	toLink, _ := linkService.GetByKey(param["toLinkKey"].(string))
 
+	//update convSend status
 	whereMap := map[string]interface{}{
 		"msg_id":     msgId,
 		"to_link_id": toLink.Id,
@@ -70,39 +69,36 @@ func MsgRead(r Request) ([]string, error) {
 		"status":  1,
 		"updated": time.Now(),
 	}
-	if err := convSendService.Update(whereMap, updateMap); err != nil {
+	err := convSendService.Update(whereMap, updateMap)
+	if err != nil {
 		log.Println("update read status err", err)
 	}
 
 	linkKeys = append(linkKeys, toLink.Id)
-	return linkKeys, nil
+	return linkKeys, err
 }
 
-func MsgListHistory(r Request) ([]string, []byte, error) {
+func MsgListHistory(r Request) ([]string, MsgHistory, error) {
 	linkKeys := make([]string, 0)
-	responseByte := make([]byte, 0)
 
 	param := r.Param
 	convId := param["convId"].(string)
-	offset := param["offset"].(int)
-	limit := param["limit"].(int)
-	link, err := linkService.GetByKey(r.LinkKey)
-	if err != nil {
-		log.Println("get link by key err", err)
-		return linkKeys, responseByte, err
-	}
+	offset := int(param["offset"].(float64))
+	limit := int(param["limit"].(float64))
+	link, _ := linkService.GetByKey(r.LinkKey)
 
+	//listMsg
 	msgs, err := msgService.ListMsg(convId, offset, limit)
 	if err != nil {
 		log.Println("listMsg err", err)
 	}
-	responseByte, err = json.Marshal(msgs)
-	if err != nil {
-		log.Println("responseByte err", err)
-	}
 
-	linkKeys = append(linkKeys, link.Id)
-	return linkKeys, responseByte, nil
+	msgHistory := MsgHistory{
+		ConvId: convId,
+		Msgs:   *msgs,
+	}
+	linkKeys = append(linkKeys, link.Key)
+	return linkKeys, msgHistory, err
 }
 
 func getLinksByConvId(convId string) ([]model.Link, error) {

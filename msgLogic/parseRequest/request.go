@@ -3,9 +3,10 @@ package parseRequest
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"log"
 )
 
+//ws request
 type Request struct {
 	Action  string                     `json:"action"`
 	LinkKey string                     `json:"linkKey"`
@@ -13,16 +14,28 @@ type Request struct {
 	Data    map[string]json.RawMessage `json:"data"`
 }
 
+//ws response
+type Response struct {
+	Action string      `json:"action"`
+	Status string      `json:"status"`
+	Data   interface{} `json:"data"`
+}
+
+//解析websocket请求
 func ParseRequest(requestByte []byte) ([]string, []byte, error) {
 	request := Request{}
 	json.Unmarshal(requestByte, &request)
-	fmt.Println("request: ", request)
+	log.Println("request: ", request)
 
 	var linkKeys []string
 	var err error
-	responseByte := requestByte
+	response := &Response{
+		Action: request.Action,
+		Status: "ok",
+		Data:   request,
+	}
 
-	//处理request
+	//handle ws request
 	switch request.Action {
 	case "msg-im":
 		linkKeys, err = MsgIm(request)
@@ -31,13 +44,13 @@ func ParseRequest(requestByte []byte) ([]string, []byte, error) {
 		linkKeys, err = MsgRead(request)
 
 	case "msg-listHistory":
-		linkKeys, responseByte, err = MsgListHistory(request)
+		linkKeys, response.Data, err = MsgListHistory(request)
 
 	case "conv-create":
-		linkKeys, err = ConvCreate(request)
+		linkKeys, response.Data, err = ConvCreate(request)
 
 	case "conv-list":
-		linkKeys, responseByte, err = ConvList(request)
+		linkKeys, response.Data, err = ConvList(request)
 
 	case "conv-delete":
 		linkKeys, err = ConvDelete(request)
@@ -58,19 +71,6 @@ func ParseRequest(requestByte []byte) ([]string, []byte, error) {
 		err = errors.New("error request action")
 	}
 
+	responseByte, _ := json.Marshal(*response)
 	return linkKeys, responseByte, err
 }
-
-/*
-func receiveSendData(key string, data []byte) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	_, err := app.GatewayRpcClient.ReceiveSendData(ctx, &gateway_bak.SendDataRequest{
-		Token: key,
-		Data:  data,
-	})
-	if err != nil {
-		log.Println("rpc gatewayRpcClient", err)
-	}
-}
-*/
