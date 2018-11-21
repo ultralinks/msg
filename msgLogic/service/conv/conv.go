@@ -13,7 +13,8 @@ func Create(conv *model.Conv) error {
 func ListByLinkId(linkId string) (*[]model.Conv, error) {
 	convs := make([]model.Conv, 0)
 	d := app.DB.Table("conv").Select("conv.*").
-		Joins("conv_link on conv_link.link_id = link.id").
-		Where("link.id = ?", linkId).Find(&convs)
+		Joins("left join conv_link on conv_link.link_id = link.id").
+		Where("link.id = ?", linkId).
+		Order("conv.created desc").Find(&convs)
 	return &convs, d.Error
 }

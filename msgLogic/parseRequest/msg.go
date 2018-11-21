@@ -84,13 +84,15 @@ func MsgListHistory(r Request) ([]string, []byte, error) {
 
 	param := r.Param
 	convId := param["convId"].(string)
+	offset := param["offset"].(int)
+	limit := param["limit"].(int)
 	link, err := linkService.GetByKey(r.LinkKey)
 	if err != nil {
 		log.Println("get link by key err", err)
 		return linkKeys, responseByte, err
 	}
 
-	msgs, err := msgService.ListMsg(convId)
+	msgs, err := msgService.ListMsg(convId, offset, limit)
 	if err != nil {
 		log.Println("listMsg err", err)
 	}
