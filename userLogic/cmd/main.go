@@ -10,11 +10,13 @@ import (
 	_ "msg/userLogic/docs"
 	"msg/userLogic/httpServer/router"
 	"msg/userLogic/httpServer/router/middleware"
+	"msg/userLogic/rpc"
 )
 
 func main() {
 	app.InitConfig()
 	app.InitDB()
+	go rpc.RunRpcServer()
 
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {

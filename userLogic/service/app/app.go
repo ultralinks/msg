@@ -15,6 +15,10 @@ func Get(appId string) (*model.App, error) {
 	return app, d.Error
 }
 
+func FetchByKey(appKey string, result interface{}) {
+	a.DB.Table("app").Where("`key` = ?", appKey).First(result)
+}
+
 func ListByOrgId(orgId string) (*[]model.App, error) {
 	app := make([]model.App, 0)
 	err := a.DB.Table("app").Where("org_id = ?", orgId).Find(&app).Error

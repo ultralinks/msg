@@ -1,6 +1,8 @@
 package util
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"math/rand"
 	"time"
 )
@@ -27,4 +29,12 @@ func GetRandomString(length int) string {
 	}
 
 	return string(result)
+}
+
+func Md5(src string) string {
+	h := md5.New()
+	h.Write([]byte(src))
+	d := h.Sum(nil)
+
+	return string(hex.EncodeToString(d))
 }

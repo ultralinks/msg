@@ -1,17 +1,20 @@
 package main
 
 import (
-	//"msg/gateway/service/msgLogic"
-	msgLogic2 "msg/msgLogic"
+	"time"
+
+	"msg/msgLogic/rpc"
+
 	"msg/msgLogic/app"
 	"msg/msgLogic/httpServer"
-	"time"
 )
 
 func main() {
 	app.InitConfig()
 	app.InitDB()
-	go msgLogic2.RunRpcServer()
+	go rpc.InitRpcClient()
+	go rpc.RunRpcServer()
+
 	go httpServer.Start()
 
 	for {

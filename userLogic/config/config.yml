@@ -14,3 +14,6 @@ redis:
 secret:
   jwt_key: "msg"
   pass_hash_salt: "msg"
+rpc:
+  host: "127.0.0.1"
+  port: "10010"

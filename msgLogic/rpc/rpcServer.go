@@ -1,4 +1,4 @@
-package msgLogic
+package rpc
 
 import (
 	"fmt"

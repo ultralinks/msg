@@ -1,0 +1,23 @@
+syntax = "proto3"; // 指定proto版本
+
+package proto;     // 指定包名
+
+// 定义app服务
+service User {
+    // 定义FetchApp方法
+    rpc FetchApp(AppRequest) returns (AppReply) {}
+}
+
+// Request 请求结构
+message AppRequest {
+    string appKey = 1;
+}
+
+// Reply 响应结构
+message AppReply {
+    string id = 1;
+    string name = 2;
+    string desc = 3;
+    string key = 4;
+    string secret = 5;
+}

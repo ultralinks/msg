@@ -5,13 +5,15 @@ import (
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"msg/msgLogic/app"
+	"msg/msgLogic/httpServer/router"
+	"msg/msgLogic/rpc"
 	_ "order-server/docs"
 )
 
 func Start() {
 	//app.InitConfig()
 	//app.InitDB()
-	//app.InitRpcClient()
+	rpc.InitRpcClient()
 
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
@@ -23,6 +25,7 @@ func Start() {
 	if gin.Mode() == gin.DebugMode {
 		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
+	router.RegisterV1Router(r)
 
 	r.Run(app.Config.Http.Domain + ":" + app.Config.Http.Port) // listen and serve on 0.0.0.0:8080
 }

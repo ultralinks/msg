@@ -5,9 +5,27 @@ import (
 	"msg/msgLogic/service/model"
 )
 
-func Create(link *model.Link) error {
-	err := app.DB.Create(link).Error
-	return err
+func Create(l *model.Link, lt *model.LinkToken) error {
+	var count int64
+	app.DB.Table("link").Where("`key` = ?", l.Key).Count(&count)
+	if count != 0 {
+		return nil
+	}
+
+	// 开始事务
+	tx := app.DB.Begin()
+	if err := tx.Create(l).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Create(lt).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
 }
 
 func Get(linkId string) (*model.Link, error) {
