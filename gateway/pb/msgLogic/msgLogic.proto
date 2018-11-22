@@ -8,13 +8,26 @@ package msgLogic;
 
 service MsgLogic {
     rpc ParseMsg (ParseMsgRequest) returns (ParseMsgResponse){}
+    rpc GetLinkByToken (GetLinkByTokenRequest) returns (GetLinkByTokenResponse){}
 }
 
 message ParseMsgRequest {
     bytes data = 1;
 }
 
+message GetLinkByTokenRequest {
+    string token = 1;
+}
+
 message ParseMsgResponse {
     repeated string linkKeys = 1;
     bytes data = 2;
+}
+
+message GetLinkByTokenResponse {
+    string linkId = 1;
+    string linkKey = 2;
+    string nick = 3;
+    string avt = 4;
+    string appId = 5;
 }

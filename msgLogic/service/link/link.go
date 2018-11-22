@@ -40,6 +40,14 @@ func GetByKey(linkKey string) (*model.Link, error) {
 	return link, d.Error
 }
 
+func GetByToken(token string) (*model.Link, error) {
+	link := &model.Link{}
+	d := app.DB.Table("link").Select("link.*").
+		Joins("left join link_token on link_token.link_id = link.id").
+		Where("link_token.token = ?", token).First(link)
+	return link, d.Error
+}
+
 func ListLink(convId string) (*[]model.Link, error) {
 	links := make([]model.Link, 0)
 	d := app.DB.Table("conv_link").Select("link.*").

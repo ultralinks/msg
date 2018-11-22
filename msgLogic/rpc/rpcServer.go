@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"msg/msgLogic/parseRequest"
 	"msg/msgLogic/pb/msgLogic"
+	linkService "msg/msgLogic/service/link"
 )
 
 type server struct{}
@@ -27,6 +28,18 @@ func (s *server) ParseMsg(ctx context.Context, in *msgLogic.ParseMsgRequest) (*m
 		Data:     data,
 	}
 	return result, nil
+}
+
+func (s *server) GetLinkByToken(ctx context.Context, r *msgLogic.GetLinkByTokenRequest) (*msgLogic.GetLinkByTokenResponse, error) {
+	link, err := linkService.GetByToken(r.Token)
+	res := &msgLogic.GetLinkByTokenResponse{
+		LinkId:  link.Id,
+		LinkKey: link.Key,
+		Nick:    link.Nick,
+		Avt:     link.Avt,
+		AppId:   link.AppId,
+	}
+	return res, err
 }
 
 func RunRpcServer() {
