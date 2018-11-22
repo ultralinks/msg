@@ -93,7 +93,7 @@ func ConvList(r Request) ([]string, []ConvItem, error) {
 		log.Println("listConv err", err)
 	}
 
-	//convs add links and lastMsg
+	//response: convs add links and lastMsg
 	convList := make([]ConvItem, 0)
 	for _, conv := range *convs {
 		links, _ := linkService.ListLink(conv.Id)

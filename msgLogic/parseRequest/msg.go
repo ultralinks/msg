@@ -13,19 +13,26 @@ import (
 	"msg/msgLogic/util"
 )
 
-//消息记录
-type MsgHistory struct {
+//一条消息
+type MsgImResp struct {
+	ConvId string    `json:"convId"`
+	Msg    model.Msg `json:"msg"`
+}
+
+//消息记录列表
+type MsgHistoryResp struct {
 	ConvId string      `json:"convId"`
 	Msgs   []model.Msg `json:"msgs"`
 }
 
-func MsgIm(r Request) ([]string, error) {
+func MsgIm(r Request) ([]string, MsgImResp, error) {
 	linkKeys := make([]string, 0)
+	var msgImResp MsgImResp
 
 	data, err := json.Marshal(r.Data)
 	if err != nil {
 		log.Println("json.Marshal data err", err)
-		return linkKeys, err
+		return linkKeys, msgImResp, err
 	}
 
 	param := r.Param
@@ -36,20 +43,25 @@ func MsgIm(r Request) ([]string, error) {
 	links, err := getLinksByConvId(convId)
 	if err != nil {
 		log.Println("get links by convId err", err)
-		return linkKeys, err
+		return linkKeys, msgImResp, err
 	}
 
 	//存储msg
-	err = storeMsg(links, string(data), r.LinkKey, convId, msgKey)
+	msg, err := storeMsg(links, string(data), r.LinkKey, convId, msgKey)
 	if err != nil {
 		log.Println("storeMsg err", err)
-		return linkKeys, err
+		return linkKeys, msgImResp, err
 	}
 
+	//response
+	msgImResp = MsgImResp{
+		ConvId: convId,
+		Msg:    msg,
+	}
 	for _, link := range links {
 		linkKeys = append(linkKeys, link.Key)
 	}
-	return linkKeys, nil
+	return linkKeys, msgImResp, nil
 }
 
 func MsgRead(r Request) ([]string, error) {
@@ -77,7 +89,7 @@ func MsgRead(r Request) ([]string, error) {
 	return linkKeys, err
 }
 
-func MsgListHistory(r Request) ([]string, MsgHistory, error) {
+func MsgListHistory(r Request) ([]string, MsgHistoryResp, error) {
 	linkKeys := make([]string, 0)
 
 	param := r.Param
@@ -92,12 +104,13 @@ func MsgListHistory(r Request) ([]string, MsgHistory, error) {
 		log.Println("listMsg err", err)
 	}
 
-	msgHistory := MsgHistory{
+	//response
+	msgHistoryResp := MsgHistoryResp{
 		ConvId: convId,
 		Msgs:   *msgs,
 	}
 	linkKeys = append(linkKeys, link.Key)
-	return linkKeys, msgHistory, err
+	return linkKeys, msgHistoryResp, err
 }
 
 func getLinksByConvId(convId string) ([]model.Link, error) {
@@ -105,7 +118,7 @@ func getLinksByConvId(convId string) ([]model.Link, error) {
 	return *links, err
 }
 
-func storeMsg(links []model.Link, data, fromLinkKey, convId, msgKey string) error {
+func storeMsg(links []model.Link, data, fromLinkKey, convId, msgKey string) (model.Msg, error) {
 	now := time.Now()
 	//msg
 	msg := model.Msg{
@@ -118,7 +131,7 @@ func storeMsg(links []model.Link, data, fromLinkKey, convId, msgKey string) erro
 	}
 	err := msgService.Create(&msg)
 	if err != nil {
-		return err
+		return msg, err
 	}
 
 	//msg_conv
@@ -128,7 +141,7 @@ func storeMsg(links []model.Link, data, fromLinkKey, convId, msgKey string) erro
 	}
 	err = msgConvService.Create(&msgConv)
 	if err != nil {
-		return err
+		return msg, err
 	}
 
 	//conv_send
@@ -143,8 +156,8 @@ func storeMsg(links []model.Link, data, fromLinkKey, convId, msgKey string) erro
 		})
 	}
 	if err != nil {
-		return err
+		return msg, err
 	}
 
-	return nil
+	return msg, nil
 }
