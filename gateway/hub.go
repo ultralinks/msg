@@ -25,7 +25,7 @@ type Hub struct {
 func NewHub() *Hub {
 	return &Hub{
 		broadcast:  make(chan []byte),
-		Sendcast:   make(chan *SendData, 1),
+		Sendcast:   make(chan *SendData, 10000),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),

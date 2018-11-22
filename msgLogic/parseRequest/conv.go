@@ -134,7 +134,7 @@ func ConvDelete(r Request) ([]string, error) {
 		log.Println("update conv_link is_ignore err", err)
 	}
 
-	linkKeys = append(linkKeys, link.Id)
+	linkKeys = append(linkKeys, link.Key)
 	return linkKeys, err
 }
 
@@ -165,7 +165,7 @@ func ConvJoin(r Request) ([]string, error) {
 		log.Println("create conv_link err", err)
 	}
 
-	linkKeys = append(linkKeys, link.Id)
+	linkKeys = append(linkKeys, link.Key)
 	return linkKeys, err
 }
 
@@ -190,7 +190,7 @@ func ConvLeave(r Request) ([]string, error) {
 		log.Println("delete conv_link err", err)
 	}
 
-	linkKeys = append(linkKeys, link.Id)
+	linkKeys = append(linkKeys, link.Key)
 	return linkKeys, err
 }
 

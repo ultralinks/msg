@@ -25,7 +25,7 @@ type Response struct {
 func ParseRequest(requestByte []byte) ([]string, []byte, error) {
 	request := Request{}
 	json.Unmarshal(requestByte, &request)
-	log.Println("request: ", request)
+	log.Println("ws request: ", request)
 
 	var linkKeys []string
 	var err error
