@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"msg/gateway/rpc"
 )
 
 const (
@@ -119,8 +120,7 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	//locaalhost:9000/ws?token=sdlfjskdjfkdgjsdf
 	token := r.FormValue("token")
 
-	//todo rpc user logic server
-	linkKey, authErr := getLinkKeyFromToken(token)
+	linkKey, authErr := rpc.GetLinkKeyByToken(token)
 	log.Println("linkKey connect", linkKey)
 
 	if authErr != nil {

@@ -3,7 +3,7 @@ package gateway
 import (
 	"fmt"
 
-	"msg/gateway/service/msgLogic"
+	"msg/gateway/rpc"
 )
 
 var HubObj = NewHub()
@@ -48,7 +48,7 @@ func (h *Hub) Run() {
 			Client_DESC()
 		case request := <-h.broadcast:
 			fmt.Println("**read from broadcast", string(request[:]))
-			linkKeys, data := msgLogic.ParseMsg(request)
+			linkKeys, data := rpc.ParseMsg(request)
 
 			for _, linkKey := range linkKeys {
 				sendData := &SendData{

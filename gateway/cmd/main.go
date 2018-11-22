@@ -7,12 +7,12 @@ import (
 	_ "net/http/pprof"
 
 	"msg/gateway"
-	"msg/gateway/app"
+	"msg/gateway/rpc"
 )
 
 func main() {
 	go gateway.HubObj.Run()
-	app.InitRpcClient()
+	go rpc.InitRpcClient()
 
 	http.HandleFunc("/count", func(w http.ResponseWriter, r *http.Request) {
 		data, err := json.Marshal(gateway.CountVal)

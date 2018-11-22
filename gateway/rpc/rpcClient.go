@@ -1,8 +1,9 @@
-package app
+package rpc
 
 import (
-	"google.golang.org/grpc"
 	"log"
+
+	"google.golang.org/grpc"
 	pbMsgLogic "msg/gateway/pb/msgLogic"
 )
 
