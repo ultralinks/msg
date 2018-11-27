@@ -1,7 +1,9 @@
 package gateway
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 
 	"msg/gateway/rpc"
 )
@@ -48,7 +50,7 @@ func (h *Hub) Run() {
 			Client_DESC()
 		case request := <-h.broadcast:
 			fmt.Println("**read from broadcast", string(request[:]))
-			linkKeys, data := rpc.ParseMsg(request)
+			linkKeys, data := ParseMsg(request)
 
 			for _, linkKey := range linkKeys {
 				sendData := &SendData{
@@ -64,4 +66,45 @@ func (h *Hub) Run() {
 			}
 		}
 	}
+}
+
+//chat room
+type Request struct {
+	Action string                     `json:"action"`
+	Linker map[string]interface{}     `json:"linker"`
+	Param  map[string]interface{}     `json:"param"`
+	Data   map[string]json.RawMessage `json:"data"`
+}
+
+var convLinks = map[string][]string{}
+
+func ParseMsg(requestByte []byte) ([]string, []byte) {
+	r := Request{}
+	json.Unmarshal(requestByte, &r)
+	log.Println("ws request: ", r)
+
+	convId := r.Param["convId"].(string)
+	linkKey := r.Linker["key"].(string)
+	var linkKeys []string
+
+	switch r.Action {
+	//chat room
+	case "chat-conv-join":
+		if _, ok := convLinks[convId]; !ok {
+			convLinks[convId] = []string{linkKey}
+		} else {
+			convLinks[convId] = append(convLinks[convId], linkKey)
+		}
+		linkKeys = convLinks[convId]
+
+	//chat room
+	case "chat-msg-im":
+		linkKeys = convLinks[convId]
+
+	default:
+		//app聊天
+		rpc.ParseMsg(requestByte)
+	}
+
+	return linkKeys, requestByte
 }

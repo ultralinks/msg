@@ -116,17 +116,19 @@ func (c *Client) writePump() {
 
 // serveWs handles websocket requests from the peer.
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
-
-	//locaalhost:9000/ws?token=sdlfjskdjfkdgjsdf
+	//localhost:9000/ws?token=sdlfjskdjfkdgjsdf
 	token := r.FormValue("token")
-
-	linkKey, authErr := rpc.GetLinkKeyByToken(token)
-	log.Println("linkKey connect", linkKey)
-
-	if authErr != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("token is invalid, connection refused"))
-		return
+	linkKey := r.FormValue("chat-key")
+	if token != "" {
+		linkKey, authErr := rpc.GetLinkKeyByToken(token)
+		log.Println("linkKey connect", linkKey)
+		if authErr != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("token is invalid, connection refused"))
+			return
+		}
+	} else if linkKey != "" {
+		log.Println("chat room: linkKey connect", linkKey)
 	}
 
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
