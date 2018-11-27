@@ -1,7 +1,6 @@
 package parseRequest
 
 import (
-	"encoding/json"
 	"log"
 	"time"
 
@@ -13,55 +12,56 @@ import (
 	"msg/msgLogic/util"
 )
 
-//一条消息
-type MsgImResp struct {
-	ConvId string    `json:"convId"`
-	Msg    model.Msg `json:"msg"`
+type MsgItemResp struct {
+	ConvId      string    `json:"convId"`
+	Id          string    `json:"id"`
+	Key         string    `json:"key"`
+	Type        string    `json:"type"`
+	Content     string    `json:"content"`
+	FromLinkKey string    `json:"fromLinkKey"`
+	Created     time.Time `json:"created"`
+	Updated     time.Time `json:"updated"`
 }
 
-//消息记录列表
-type MsgHistoryResp struct {
-	ConvId string      `json:"convId"`
-	Msgs   []model.Msg `json:"msgs"`
-}
-
-func MsgIm(r Request) ([]string, MsgImResp, error) {
+func MsgIm(r Request) ([]string, MsgItemResp, error) {
 	linkKeys := make([]string, 0)
-	var msgImResp MsgImResp
-
-	data, err := json.Marshal(r.Data)
-	if err != nil {
-		log.Println("json.Marshal data err", err)
-		return linkKeys, msgImResp, err
-	}
+	var msgItemResp MsgItemResp
 
 	param := r.Param
 	convId := param["convId"].(string)
 	msgKey := param["msgKey"].(string)
+	msgType := param["msgType"].(string)
+	msgContent := param["msgContent"].(string)
 
 	//通过convId找到links
 	links, err := getLinksByConvId(convId)
 	if err != nil {
 		log.Println("get links by convId err", err)
-		return linkKeys, msgImResp, err
+		return linkKeys, msgItemResp, err
 	}
 
 	//存储msg
-	msg, err := storeMsg(links, string(data), r.LinkKey, convId, msgKey)
+	msg, err := storeMsg(links, msgType, msgContent, r.LinkKey, convId, msgKey)
 	if err != nil {
 		log.Println("storeMsg err", err)
-		return linkKeys, msgImResp, err
+		return linkKeys, msgItemResp, err
 	}
 
 	//response
-	msgImResp = MsgImResp{
-		ConvId: convId,
-		Msg:    msg,
+	msgItemResp = MsgItemResp{
+		ConvId:      convId,
+		Id:          msg.Id,
+		Key:         msg.Key,
+		Type:        msg.Type,
+		Content:     msg.Content,
+		FromLinkKey: msg.FromLinkKey,
+		Created:     msg.Created,
+		Updated:     msg.Updated,
 	}
 	for _, link := range links {
 		linkKeys = append(linkKeys, link.Key)
 	}
-	return linkKeys, msgImResp, nil
+	return linkKeys, msgItemResp, nil
 }
 
 func MsgRead(r Request) ([]string, error) {
@@ -89,7 +89,7 @@ func MsgRead(r Request) ([]string, error) {
 	return linkKeys, err
 }
 
-func MsgListHistory(r Request) ([]string, MsgHistoryResp, error) {
+func MsgListHistory(r Request) ([]string, []MsgItemResp, error) {
 	linkKeys := make([]string, 0)
 
 	param := r.Param
@@ -105,9 +105,19 @@ func MsgListHistory(r Request) ([]string, MsgHistoryResp, error) {
 	}
 
 	//response
-	msgHistoryResp := MsgHistoryResp{
-		ConvId: convId,
-		Msgs:   *msgs,
+	msgHistoryResp := make([]MsgItemResp, 0)
+	for _, m := range *msgs {
+		msgItemResp := MsgItemResp{
+			ConvId:      convId,
+			Id:          m.Id,
+			Key:         m.Key,
+			Type:        m.Type,
+			Content:     m.Content,
+			FromLinkKey: m.FromLinkKey,
+			Created:     m.Created,
+			Updated:     m.Updated,
+		}
+		msgHistoryResp = append(msgHistoryResp, msgItemResp)
 	}
 	linkKeys = append(linkKeys, link.Key)
 	return linkKeys, msgHistoryResp, err
@@ -118,13 +128,14 @@ func getLinksByConvId(convId string) ([]model.Link, error) {
 	return *links, err
 }
 
-func storeMsg(links []model.Link, data, fromLinkKey, convId, msgKey string) (model.Msg, error) {
+func storeMsg(links []model.Link, msgType, content, fromLinkKey, convId, msgKey string) (model.Msg, error) {
 	now := time.Now()
 	//msg
 	msg := model.Msg{
 		Id:          util.GetRandomString(11),
 		Key:         msgKey,
-		Data:        data,
+		Type:        msgType,
+		Content:     content,
 		FromLinkKey: fromLinkKey,
 		Created:     now,
 		Updated:     now,

@@ -7,10 +7,9 @@ import (
 
 //ws request
 type Request struct {
-	Action  string                     `json:"action"`
-	LinkKey string                     `json:"linkKey"`
-	Param   map[string]interface{}     `json:"param"`
-	Data    map[string]json.RawMessage `json:"data"`
+	Action  string                 `json:"action"`
+	LinkKey string                 `json:"linkKey"`
+	Param   map[string]interface{} `json:"param"`
 }
 
 //ws response
