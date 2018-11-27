@@ -27,6 +27,10 @@ func ParseMsg(request []byte) (linkKeys []string, data []byte) {
 }
 
 func GetLinkKeyByToken(token string) (string, error) {
+	if token == "" {
+		return "", nil
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

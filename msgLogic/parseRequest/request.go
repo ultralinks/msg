@@ -3,7 +3,6 @@ package parseRequest
 import (
 	"encoding/json"
 	"errors"
-	"log"
 )
 
 //ws request
@@ -25,7 +24,7 @@ type Response struct {
 func ParseRequest(requestByte []byte) ([]string, []byte, error) {
 	request := Request{}
 	json.Unmarshal(requestByte, &request)
-	log.Println("ws request: ", request)
+	//log.Println("request: ", request)
 
 	var linkKeys []string
 	var err error
@@ -71,6 +70,8 @@ func ParseRequest(requestByte []byte) ([]string, []byte, error) {
 		err = errors.New("error request action")
 	}
 
+	//log.Println("linkKeys: ", linkKeys)
+	//log.Println("response: ", *response)
 	responseByte, _ := json.Marshal(*response)
 	return linkKeys, responseByte, err
 }
