@@ -35,6 +35,9 @@ func ParseRequest(requestByte []byte) ([]string, []byte, error) {
 
 	//handle ws request
 	switch request.Action {
+	case "link-get":
+		linkKeys, response.Data, err = LinkGet(request)
+
 	case "msg-im":
 		linkKeys, response.Data, err = MsgIm(request)
 

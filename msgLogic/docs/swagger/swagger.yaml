@@ -1,0 +1,80 @@
+definitions:
+  link.CreateRequest:
+    properties:
+      app_key:
+        type: string
+      avt:
+        type: string
+      nick:
+        type: string
+      sign:
+        type: string
+      time_stamp:
+        type: string
+      user_id:
+        type: string
+    type: object
+info:
+  contact: {}
+  license: {}
+paths:
+  /link/{key}:
+    get:
+      consumes:
+      - application/json
+      description: 返回link
+      parameters:
+      - description: linkKey
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "ok"}'
+          schema:
+            type: string
+        "400":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+        "500":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+      summary: 通过linkKey获取link
+      tags:
+      - link
+  /links:
+    post:
+      consumes:
+      - application/json
+      description: 返回link_token
+      parameters:
+      - description: 请求参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/link.CreateRequest'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg": "ok"}'
+          schema:
+            type: string
+        "400":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+        "500":
+          description: '{"msg": "error info"}'
+          schema:
+            type: string
+      summary: 创建link
+      tags:
+      - link

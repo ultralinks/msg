@@ -30,7 +30,7 @@ func main() {
 	})
 
 	log.Println("server start")
-	err := http.ListenAndServe("0.0.0.0:9000", nil)
+	err := http.ListenAndServe("0.0.0.0:12315", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

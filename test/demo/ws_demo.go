@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var addr = flag.String("addr", "localhost:9000", "http service address")
+var addr = flag.String("addr", "localhost:12315", "http service address")
 
 func loop() {
 	for {
@@ -32,7 +32,7 @@ func loop() {
 			time.Sleep(1 * time.Second)
 			_, message, err := c.ReadMessage()
 			if err != nil {
-                log.Println("read message error",err)
+				log.Println("read message error", err)
 				break
 			}
 			log.Println("read message:", string(message[:]))
