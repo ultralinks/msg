@@ -1,6 +1,7 @@
 package link
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -34,41 +35,15 @@ type CreateRequest struct {
 // @Failure 500 {string} json "{"msg": "error info"}"
 // @Router /links [post]
 func Create(ctx *gin.Context) {
-	// 时间戳校验
-	const FiveMinute = 300
 	timestamp := ctx.PostForm("time_stamp")
-	if timestamp == "" {
-		ctx.JSON(http.StatusOK, gin.H{"error": "timestamp can not empty"})
-		return
-	}
-	clientNow, err := strconv.ParseInt(timestamp, 10, 64)
-	if err != nil {
-		ctx.JSON(http.StatusOK, gin.H{"error": "timestamp error"})
-		return
-	}
-	serverNow := time.Now().UTC().Unix()
-	dValue := serverNow - clientNow
-	if dValue < 0 {
-		dValue = -dValue
-	}
-	if dValue > FiveMinute {
-		ctx.JSON(http.StatusOK, gin.H{"error": "timestamp error"})
-		return
-	}
-
-	// 签名校验
 	clientSign := ctx.PostForm("sign")
 	appKey := ctx.PostForm("app_key")
-	if clientSign == "" || appKey == "" {
-		ctx.JSON(http.StatusOK, gin.H{"error": "sign/app_key can not empty"})
-		return
-	}
+
 	// rpc调用获取secret
 	app := rpc.FetchApp(appKey)
-	salt := "msg"
-	serverSign := util.Md5(appKey + app.Secret + salt)
-	if clientSign != serverSign {
-		ctx.JSON(http.StatusOK, gin.H{"error": "sign error"})
+
+	if err := verify(timestamp, clientSign, appKey, app.Secret); err != nil {
+		ctx.JSON(http.StatusOK, gin.H{"error": err})
 		return
 	}
 
@@ -98,7 +73,40 @@ func Create(ctx *gin.Context) {
 
 	l, _ := linkService.GetByKey(userId)
 	lt, _ := linkTokenService.Get(l.Id)
-	ctx.JSON(http.StatusOK, gin.H{"link_token": lt.Token})
+	ctx.JSON(http.StatusOK, gin.H{"link": l, "link_token": lt})
+}
+
+func verify(timestamp, clientSign, appKey, secret string) error {
+	// 时间戳校验
+	const FiveMinute = 300
+	if timestamp == "" {
+		return errors.New("timestamp can not empty")
+	}
+	clientNow, err := strconv.ParseInt(timestamp, 10, 64)
+	if err != nil {
+		return errors.New("timestamp error")
+	}
+	serverNow := time.Now().UTC().Unix()
+	dValue := serverNow - clientNow
+	if dValue < 0 {
+		dValue = -dValue
+	}
+	if dValue > FiveMinute {
+		return errors.New("timestamp error")
+	}
+
+	// 签名校验
+	if clientSign == "" || appKey == "" {
+		return errors.New("sign/app_key can not empty")
+	}
+
+	salt := "msg"
+	serverSign := util.Md5(appKey + secret + salt)
+	if clientSign != serverSign {
+		return errors.New("sign error")
+	}
+
+	return nil
 }
 
 //
