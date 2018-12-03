@@ -6,6 +6,6 @@ import (
 )
 
 func RegisterV1Router(r *gin.Engine) {
-	r.POST("/links", link.Create)
+	r.POST("/links", link.Link)
 	r.GET("/link/:key", link.Get)
 }

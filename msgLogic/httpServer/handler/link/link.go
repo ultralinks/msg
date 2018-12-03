@@ -23,34 +23,23 @@ type CreateRequest struct {
 	Avt       string `json:"avt"`
 }
 
-//
-// @Summary 创建link
-// @Description 返回link_token
-// @Tags    link
-// @Accept  json
-// @Produce  json
-// @Param body body link.CreateRequest true "请求参数"
-// @Success 200 {string} json "{"msg": "ok"}"
-// @Failure 400 {string} json "{"msg": "error info"}"
-// @Failure 500 {string} json "{"msg": "error info"}"
-// @Router /links [post]
-func Create(ctx *gin.Context) {
+func Link(ctx *gin.Context) {
 	timestamp := ctx.PostForm("time_stamp")
 	clientSign := ctx.PostForm("sign")
 	appKey := ctx.PostForm("app_key")
+	userId := ctx.PostForm("user_id")
+	nick := ctx.PostForm("nick")
+	avt := ctx.PostForm("avt")
+	action := ctx.PostForm("action")
+	now := time.Now()
 
 	// rpc调用获取secret
 	app := rpc.FetchApp(appKey)
-
 	if err := verify(timestamp, clientSign, appKey, app.Secret); err != nil {
 		ctx.JSON(http.StatusOK, gin.H{"error": err})
 		return
 	}
 
-	userId := ctx.PostForm("user_id")
-	nick := ctx.PostForm("nick")
-	avt := ctx.PostForm("avt")
-	now := time.Now()
 	id := util.GetRandomString(11)
 	link := model.Link{
 		Id:      id,
@@ -73,7 +62,21 @@ func Create(ctx *gin.Context) {
 
 	l, _ := linkService.GetByKey(userId)
 	lt, _ := linkTokenService.Get(l.Id)
-	ctx.JSON(http.StatusOK, gin.H{"link": l, "link_token": lt})
+
+	if action == "linkToken" {
+		ctx.JSON(http.StatusOK, gin.H{"token": lt.Token})
+		return
+	}
+
+	if action == "link" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"avt":  l.Avt,
+			"nick": l.Nick,
+			"key":  l.Key,
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"error": "action error"})
 }
 
 func verify(timestamp, clientSign, appKey, secret string) error {
