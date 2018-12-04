@@ -10,7 +10,7 @@ import (
 var MsgLogicRpcClient pbMsgLogic.MsgLogicClient
 
 func InitRpcClient() {
-	address := "127.0.0.1:10009"
+	address := "127.0.0.1:12321"
 	log.Println("gateway rpc client start", address)
 	conn, err := grpc.Dial(address, grpc.WithInsecure()) // 连接
 	if err != nil {

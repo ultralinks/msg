@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"msg/msgLogic/app"
 	"msg/msgLogic/parseRequest"
 	"msg/msgLogic/pb/msgLogic"
 	linkService "msg/msgLogic/service/link"
@@ -44,7 +45,7 @@ func (s *server) GetLinkByToken(ctx context.Context, r *msgLogic.GetLinkByTokenR
 
 func RunRpcServer() {
 	fmt.Println("start msgLogic rpc server")
-	address := "0.0.0.0:10009"
+	address := app.Config.Rpc.Domain + ":" + app.Config.Rpc.Port
 	lis, err := net.Listen("tcp", address)
 
 	log.Println("rpc server start and listen", address)

@@ -12,12 +12,12 @@ func Create(conv *model.Conv) error {
 
 func GetByTwoLinkId(linkId1, linkId2 string) (*model.Conv, error) {
 	conv := &model.Conv{}
-	sql := "select conv.* from conv" +
-		"left join conv_link as cl1 on cl1.conv_id = conv.id" +
-		"left join conv_link as cl2 on cl2.conv_id = conv.id" +
-		"where conv.type = 'single' and cl1.link_id = ? and cl2.link_id = ?"
-	d := app.DB.Raw(sql, linkId1, linkId2).First(conv)
-
+	sql := "select conv.* from conv " +
+		"left join conv_link as cl1 on cl1.conv_id = conv.id " +
+		"left join conv_link as cl2 on cl2.conv_id = conv.id " +
+		"where conv.type = " + "'single'" +
+		" and cl1.link_id = '" + linkId1 + "' and cl2.link_id = '" + linkId2 + "'"
+	d := app.DB.Raw(sql).Scan(conv)
 	return conv, d.Error
 }
 

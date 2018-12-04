@@ -23,7 +23,7 @@ type ConvItem struct {
 	UnreadNum int          `json:"unreadNum"`
 }
 
-func ConvCreate(r Request) ([]string, map[string]string, error) {
+func ConvCreate(r Request) ([]string, ConvItem, error) {
 	linkKeys := make([]string, 0)
 
 	link, _ := linkService.GetByKey(r.LinkKey)
@@ -31,19 +31,34 @@ func ConvCreate(r Request) ([]string, map[string]string, error) {
 	param := r.Param
 	convKey := param["convKey"].(string)
 	convType := param["convType"].(string)
-	name := param["name"].(string)
-	links, err := getLinksByLinkKeys(param["linkKeys"].([]string))
+	name := param["convName"].(string)
+	avt := param["convAvt"].(string)
+
+	//convLinkKeys
+	convLinkKeys := make([]string, 0)
+	linkKeyInterfaces := param["linkKeys"].([]interface{})
+	for _, l := range linkKeyInterfaces {
+		convLinkKeys = append(convLinkKeys, l.(string))
+	}
+	links, err := getLinksByLinkKeys(convLinkKeys)
 	if err != nil {
 		log.Println("get links by linkKeys err", err)
 	}
 
 	//single type conv if existed
 	if convType == "single" {
-		existedConv, err := convService.GetByTwoLinkId(links[0].Id, links[1].Id)
-		if err != nil {
-			return linkKeys, map[string]string{}, err
+		existedConv, _ := convService.GetByTwoLinkId(links[0].Id, links[1].Id)
+		if existedConv.Id != "" {
+			lastMsg, _ := msgService.GetByConvId(existedConv.Id)
+			existedConvItem := ConvItem{
+				ConvId:    existedConv.Id,
+				Conv:      *existedConv,
+				Links:     links,
+				LastMsg:   *lastMsg,
+				UnreadNum: 0,
+			}
+			return []string{link.Key}, existedConvItem, nil
 		}
-		return []string{link.Key}, map[string]string{"convId": existedConv.Id}, nil
 	}
 
 	//create conv
@@ -52,6 +67,7 @@ func ConvCreate(r Request) ([]string, map[string]string, error) {
 		Id:      util.GetRandomString(11),
 		Key:     convKey,
 		Name:    name,
+		Avt:     avt,
 		Type:    convType,
 		Created: now,
 		Updated: now,
@@ -74,12 +90,21 @@ func ConvCreate(r Request) ([]string, map[string]string, error) {
 			IsMute:   0,
 			IsIgnore: 0,
 			Created:  now,
+			Updated:  now,
 		}
 		convLinkService.Create(&convLink)
 		linkKeys = append(linkKeys, link.Key)
 	}
 
-	return linkKeys, map[string]string{"convId": conv.Id}, err
+	lastMsg, _ := msgService.GetByConvId(conv.Id)
+	convItem := ConvItem{
+		ConvId:    conv.Id,
+		Conv:      conv,
+		Links:     links,
+		LastMsg:   *lastMsg,
+		UnreadNum: 0,
+	}
+	return linkKeys, convItem, err
 }
 
 func ConvList(r Request) ([]string, []ConvItem, error) {

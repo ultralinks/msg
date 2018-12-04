@@ -1,6 +1,6 @@
 http:
   domain: "0.0.0.0"
-  port: 10004
+  port: 12330
 db:
   host: "127.0.0.1"
   port: "3306"
@@ -16,4 +16,4 @@ secret:
   pass_hash_salt: "msg"
 rpc:
   host: "127.0.0.1"
-  port: "10010"
+  port: "12331"

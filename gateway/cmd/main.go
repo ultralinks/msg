@@ -29,8 +29,9 @@ func main() {
 		gateway.ServeWs(gateway.HubObj, w, r)
 	})
 
-	log.Println("server start")
-	err := http.ListenAndServe("0.0.0.0:12315", nil)
+	address := "0.0.0.0:12315"
+	log.Println("server start: ", address)
+	err := http.ListenAndServe(address, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

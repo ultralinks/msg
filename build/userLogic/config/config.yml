@@ -1,0 +1,19 @@
+http:
+  domain: "0.0.0.0"
+  port: 12330
+db:
+  host: "127.0.0.1"
+  port: "3306"
+  user: "root"
+  password: "Mm#0987654321"
+  name: "msg"
+redis:
+  addr: "127.0.0.1:6379"
+  password: ""
+  pool_size: 10
+secret:
+  jwt_key: "msg"
+  pass_hash_salt: "msg"
+rpc:
+  host: "127.0.0.1"
+  port: "12331"

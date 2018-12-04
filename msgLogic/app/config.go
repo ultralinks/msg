@@ -15,9 +15,9 @@ type appConfig struct {
 		Port   string `mapstructure:"port"`
 	} `mapstructure:"http"`
 	Rpc struct {
-		Host string `mapstructure:"host"`
-		Port string `mapstructure:"port"`
-	} `mapstructure:"http"`
+		Domain string `mapstructure:"domain"`
+		Port   string `mapstructure:"port"`
+	} `mapstructure:"rpc"`
 	DB struct {
 		Host               string `mapstructure:"host"`
 		Port               string `mapstructure:"port"`

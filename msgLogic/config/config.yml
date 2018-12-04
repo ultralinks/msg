@@ -1,9 +1,9 @@
 http:
   domain: "0.0.0.0"
-  port: 10003
+  port: 12320
 rpc:
-  host: "0.0.0.0"
-  port: 10004
+  domain: "0.0.0.0"
+  port: 12321
 db:
   host: "127.0.0.1"
   port: "3306"
@@ -19,5 +19,5 @@ secret:
   pass_hash_salt: "pass_hash_salt"
 user_rpc:
   host: "localhost"
-  port: "10010"
+  port: "12331"
 

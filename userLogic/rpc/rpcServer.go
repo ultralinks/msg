@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	userLogic "msg/userLogic/app"
 	pb "msg/userLogic/pb/userLogic"
 	"msg/userLogic/service/app"
 )
@@ -22,7 +23,7 @@ func (s *server) FetchApp(ctx context.Context, in *pb.AppRequest) (*pb.AppReply,
 
 func RunRpcServer() {
 	fmt.Println("start msgLogic rpc server")
-	address := "127.0.0.1:10010"
+	address := userLogic.Config.Rpc.Domain + ":" + userLogic.Config.Rpc.Port
 	lis, err := net.Listen("tcp", address)
 
 	log.Println("rpc server start and listen", address)

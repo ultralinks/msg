@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"google.golang.org/grpc"
+	"msg/msgLogic/app"
 	userPb "msg/msgLogic/pb/userLogic"
 )
 
@@ -14,7 +15,7 @@ func InitRpcClient() {
 }
 
 func appClient() {
-	address := "127.0.0.1:10010"
+	address := app.Config.UserRpc.Host + ":" + app.Config.UserRpc.Port
 	log.Println("message rpc client start", address)
 	conn, err := grpc.Dial(address, grpc.WithInsecure()) // 连接
 	if err != nil {
