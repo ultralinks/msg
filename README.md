@@ -1,50 +1,209 @@
 ### 结构
 
-gateway 负责长连接，可分布式部署
+gateway 负责长连接，可分布式部署，提供websocket接口
 
-logic 负责处理业务逻辑，无状态
+msgLogic 负责处理消息业务，数据库存储，无状态，提供rpc接口
 
-### 代码
+userLogic 负责用户、组织、app业务，数据库存储，提供http接口
 
 https://www.processon.com/view/link/5a0998cae4b049e7f4fcdcdc
 
-### 计划
+### todo
 
-* 基础推送网关
-    * [x] 保持用户长链接
-    * [x] 连接数量统计
-    * [x] 消息收发
-    * [ ] 消息存储      hui
-    * [ ] 登录逻辑      hui
-    * [ ] 群组处理
-    * [ ] 分布式
-    * [ ] 推送 接口        gao
+* 前端: 消息类型、消息已读未读
+* userLogic: 登录注册api
+* msgLogic: 多人群聊的会话
+* gateway: 推送push
+* 第三方: 好友关系
 
-* basic （8月31日）
-    * [ ] 消息格式制定，登录、普通消息、图文、@某人 自定义   jason
-    * [ ] 表结构制定     jason
+### APP聊天的流程
 
-* logic-user （8月31日接口文档 9月7日完成接口）
-    * [ ] admin-dashboard  xxxxx
-    * [ ] app 应用管理接口  crud app       gao
-    * [ ] app 用户信息管理接口             hui
-    * [ ] 用户登录接口，gateway rpc调用,jwt  hui
+1. kuip server: getLinkTokenByToken
+2. websocket connect by linkToken
+3. getLinkByUserId
+4. listConv
+5. listMsgHistory
+6. sendMsg
+    1. msgType: text image video audio duration location others
+7. createConv
+    1. kuip server: getLinkByUserId
+    2. createConv
+ 
+### websocket connect
 
-* logic-push （8月31日接口文档 9月7日完成）
-    * [ ] push 特定用户    gao
-    * [ ] push 所有用户    gao
-    * [ ] push 标签用户    gao
-    * [ ] push 历史记录接口 gao
-    * [ ] 前端 长连接 认证  shao
+* ws://kuipmake.com:12315/ws?token=001
 
-* logic-group
-    * [ ] group-crud
+### chat room api
 
-* logic-msg
-    * [ ] 聊天 ui
-    * [ ] 用户登录
-    * [ ] 消息处理
-    * [ ] 聊天记录
-    * [ ] 群组
-    * [ ] 消息存储
-    * [ ] rabbitmq
+* joinChatConv
+    * ws://kuipmake.com:12315/ws
+```
+request:
+{
+    action: "chat-conv-join,
+    linker: {},
+    param: {convId}
+}
+```
+* sendChatMsg
+    * ws://kuipmake.com:12315/ws
+```
+request:
+{
+    action: "chat-msg-im
+    linker: {name, key, avt},
+    param: {msgKey, convId},
+    data: {msgType, content}
+}
+```
+
+### link api
+
+* kuip server: getLinkTokenByToken
+
+* kuip server: getLinkByUserId
+
+### msg api
+
+* msg-im
+    * ws://kuipmake.com:12315/ws
+
+```
+request:
+{
+    action: msg-im,
+    linkKey: userId,
+    param: {msgKey, convId, msgType, msgContent}
+} 
+```
+
+* msg-read
+    * ws://kuipmake.com:12315/ws
+
+```
+request:
+{
+
+    action: msg-read,
+    linkKey: userId,
+    param: {toLinkKey, msgId}
+}
+```
+
+* msg-listHistory
+    * ws://kuipmake.com:12315/ws
+
+```
+request:
+{
+    action: msg-listHistory,
+    linkKey: userId,
+    param: {convId,limit,offset}
+}
+```
+### conv api
+
+* conv-create
+    * ws://kuipmake.com:12315/ws 
+
+```
+request:
+{
+    action: conv-create,
+    linkKey: userId,
+    param: {convType: "single or multi", convKey: “random", convAvt, convName: “convName", linkKeys: []}
+}
+```
+
+* conv-list
+    * ws://kuipmake.com:12315/ws
+
+```
+request:
+{
+    action: conv-list,
+    linkKey: userId,
+}
+```
+
+* conv-delete
+    * ws://kuipmake.com:12315/ws
+
+```
+request:
+{
+    action: conv-delete,
+    linkKey,
+    param: {convId}
+}
+```
+
+* conv-join
+    * ws://kuipmake.com:12315/ws
+
+```
+request:
+{
+    action: conv-join,
+    linkKey,
+    param: {convId}
+}
+```
+
+* conv-leave
+    * ws://kuipmake.com:12315/ws
+
+```
+request:
+{
+    action: conv-leave,
+    linkKey,
+    param: {convId}
+}
+```
+
+* conv-inviteLinks
+    * ws://kuipmake.com:12315/ws
+
+```
+request:
+{
+    action: conv-inviteLinks,
+    linkKey,
+    param: {convId: xxx, linkKeys: []}
+}
+```
+
+* conv-removeLinks
+    * ws://kuipmake.com:12315/ws
+
+```
+request:
+{
+    action: conv-removeLinks,
+    linkKey,
+    param: {convId: xxx, linkKeys: []}
+}
+```
+
+### user api
+
+* reg
+* login
+* createOrg
+* listOrg
+* getOrg
+* createApp
+* listApp
+* getApp
+
+### 部署到kuipmake.com的端口
+* gateway
+    * ws: 12315
+* msgLogic
+    * http: 12320
+    * rpc: 12321
+* userLogic
+    * http: 12330
+    * rpc: 12331
+* mac本地部署，./ci.sh

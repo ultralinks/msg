@@ -23,6 +23,11 @@ type MsgItemResp struct {
 	Updated     time.Time `json:"updated"`
 }
 
+type MsgHistoryResp struct {
+	ConvId string        `json:"convId"`
+	Msgs   []MsgItemResp `json:"msgs"`
+}
+
 func MsgIm(r Request) ([]string, MsgItemResp, error) {
 	linkKeys := make([]string, 0)
 	var msgItemResp MsgItemResp
@@ -89,7 +94,7 @@ func MsgRead(r Request) ([]string, error) {
 	return linkKeys, err
 }
 
-func MsgListHistory(r Request) ([]string, []MsgItemResp, error) {
+func MsgListHistory(r Request) ([]string, MsgHistoryResp, error) {
 	linkKeys := make([]string, 0)
 
 	param := r.Param
@@ -105,7 +110,7 @@ func MsgListHistory(r Request) ([]string, []MsgItemResp, error) {
 	}
 
 	//response
-	msgHistoryResp := make([]MsgItemResp, 0)
+	msgsResp := make([]MsgItemResp, 0)
 	for _, m := range *msgs {
 		msgItemResp := MsgItemResp{
 			ConvId:      convId,
@@ -117,7 +122,11 @@ func MsgListHistory(r Request) ([]string, []MsgItemResp, error) {
 			Created:     m.Created,
 			Updated:     m.Updated,
 		}
-		msgHistoryResp = append(msgHistoryResp, msgItemResp)
+		msgsResp = append(msgsResp, msgItemResp)
+	}
+	msgHistoryResp := MsgHistoryResp{
+		ConvId: convId,
+		Msgs:   msgsResp,
 	}
 	linkKeys = append(linkKeys, link.Key)
 	return linkKeys, msgHistoryResp, err
