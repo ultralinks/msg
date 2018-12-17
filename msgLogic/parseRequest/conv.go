@@ -29,14 +29,29 @@ func ConvCreate(r Request) ([]string, ConvItem, error) {
 	link, _ := linkService.GetByKey(r.LinkKey)
 
 	param := r.Param
-	convKey := param["convKey"].(string)
-	convType := param["convType"].(string)
-	name := param["convName"].(string)
-	avt := param["convAvt"].(string)
+	convKey, ok := param["convKey"].(string)
+	if !ok {
+		convKey = ""
+	}
+	convType, ok := param["convType"].(string)
+	if !ok {
+		convType = "single"
+	}
+	name, ok := param["convName"].(string)
+	if !ok {
+		name = "unknown"
+	}
+	avt, ok := param["convAvt"].(string)
+	if !ok {
+		avt = ""
+	}
 
 	//convLinkKeys
 	convLinkKeys := make([]string, 0)
-	linkKeyInterfaces := param["linkKeys"].([]interface{})
+	linkKeyInterfaces, ok := param["linkKeys"].([]interface{})
+	if !ok {
+		linkKeyInterfaces = make([]interface{}, 0)
+	}
 	for _, l := range linkKeyInterfaces {
 		convLinkKeys = append(convLinkKeys, l.(string))
 	}
@@ -142,7 +157,10 @@ func ConvDelete(r Request) ([]string, error) {
 	linkKeys := make([]string, 0)
 
 	param := r.Param
-	convId := param["convId"].(string)
+	convId, ok := param["convId"].(string)
+	if !ok {
+		convId = ""
+	}
 	link, _ := linkService.GetByKey(r.LinkKey)
 
 	//update convLink
@@ -167,7 +185,10 @@ func ConvJoin(r Request) ([]string, error) {
 	linkKeys := make([]string, 0)
 
 	param := r.Param
-	convId := param["convId"].(string)
+	convId, ok := param["convId"].(string)
+	if !ok {
+		convId = ""
+	}
 	link, err := linkService.GetByKey(r.LinkKey)
 	if err != nil {
 		log.Println("get link by key err", err)
@@ -198,7 +219,10 @@ func ConvLeave(r Request) ([]string, error) {
 	linkKeys := make([]string, 0)
 
 	param := r.Param
-	convId := param["convId"].(string)
+	convId, ok := param["convId"].(string)
+	if !ok {
+		convId = ""
+	}
 	link, err := linkService.GetByKey(r.LinkKey)
 	if err != nil {
 		log.Println("get link by key err", err)
@@ -223,7 +247,10 @@ func ConvInviteLinks(r Request) ([]string, error) {
 	linkKeys := make([]string, 0)
 
 	param := r.Param
-	convId := param["convId"].(string)
+	convId, ok := param["convId"].(string)
+	if !ok {
+		convId = ""
+	}
 	links, err := getLinksByLinkKeys(param["linkKeys"].([]string))
 	if err != nil {
 		log.Println("get links by linkKeys err", err)
@@ -253,7 +280,10 @@ func ConvRemoveLinks(r Request) ([]string, error) {
 	linkKeys := make([]string, 0)
 
 	param := r.Param
-	convId := param["convId"].(string)
+	convId, ok := param["convId"].(string)
+	if !ok {
+		convId = ""
+	}
 	fromLink, _ := linkService.GetByKey(r.LinkKey)
 	links, err := getLinksByLinkKeys(param["linkKeys"].([]string))
 	if err != nil {

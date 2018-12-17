@@ -33,10 +33,22 @@ func MsgIm(r Request) ([]string, MsgItemResp, error) {
 	var msgItemResp MsgItemResp
 
 	param := r.Param
-	convId := param["convId"].(string)
-	msgKey := param["msgKey"].(string)
-	msgType := param["msgType"].(string)
-	msgContent := param["msgContent"].(string)
+	convId, ok := param["convId"].(string)
+	if !ok {
+		convId = ""
+	}
+	msgKey, ok := param["msgKey"].(string)
+	if !ok {
+		msgKey = ""
+	}
+	msgType, ok := param["msgType"].(string)
+	if !ok {
+		msgType = "text"
+	}
+	msgContent, ok := param["msgContent"].(string)
+	if !ok {
+		msgContent = ""
+	}
 
 	//通过convId找到links
 	links, err := getLinksByConvId(convId)
@@ -73,8 +85,15 @@ func MsgRead(r Request) ([]string, error) {
 	linkKeys := make([]string, 0)
 
 	param := r.Param
-	msgId := param["msgId"].(string)
-	toLink, _ := linkService.GetByKey(param["toLinkKey"].(string))
+	msgId, ok := param["msgId"].(string)
+	if !ok {
+		msgId = ""
+	}
+	toLinkKey, ok := param["toLinkKey"].(string)
+	if !ok {
+		toLinkKey = ""
+	}
+	toLink, _ := linkService.GetByKey(toLinkKey)
 
 	//update convSend status
 	whereMap := map[string]interface{}{
@@ -98,9 +117,20 @@ func MsgListHistory(r Request) ([]string, MsgHistoryResp, error) {
 	linkKeys := make([]string, 0)
 
 	param := r.Param
-	convId := param["convId"].(string)
-	offset := int(param["offset"].(float64))
-	limit := int(param["limit"].(float64))
+	convId, ok := param["convId"].(string)
+	if !ok {
+		convId = ""
+	}
+	offsetParam, ok := param["offset"].(float64)
+	if !ok {
+		offsetParam = 0
+	}
+	offset := int(offsetParam)
+	limitParam, ok := param["limit"].(float64)
+	if !ok {
+		limitParam = 20
+	}
+	limit := int(limitParam)
 	link, _ := linkService.GetByKey(r.LinkKey)
 
 	//listMsg

@@ -87,8 +87,14 @@ func ParseMsg(requestByte []byte) ([]string, []byte) {
 	switch r.Action {
 	//chat room
 	case "chat-conv-join":
-		convId := r.Param["convId"].(string)
-		linkKey := r.Linker["key"].(string)
+		convId, ok := r.Param["convId"].(string)
+		if !ok {
+			convId = ""
+		}
+		linkKey, ok := r.Linker["key"].(string)
+		if !ok {
+			linkKey = ""
+		}
 		if _, ok := convLinks[convId]; !ok {
 			convLinks[convId] = []string{linkKey}
 		} else {
@@ -99,7 +105,10 @@ func ParseMsg(requestByte []byte) ([]string, []byte) {
 
 	//chat room
 	case "chat-msg-im":
-		convId := r.Param["convId"].(string)
+		convId, ok := r.Param["convId"].(string)
+		if !ok {
+			convId = ""
+		}
 		linkKeys = convLinks[convId]
 		responseByte = requestByte
 
