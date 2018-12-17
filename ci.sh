@@ -2,7 +2,9 @@
 #build Linux on mac
 
 #echo "update vendor..."
-#dep ensure -v
+#export GO111MODULE=on
+#go mod tidy
+#go mod vendor
 
 echo "building...."
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/gateway/msgGateway gateway/cmd/main.go

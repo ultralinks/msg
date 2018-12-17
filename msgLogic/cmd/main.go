@@ -9,8 +9,8 @@ import (
 	"msg/msgLogic/rpc"
 
 	"msg/msgLogic/app"
+	_ "msg/msgLogic/docs"
 	"msg/msgLogic/httpServer/router"
-	_ "order-server/docs"
 )
 
 func main() {
