@@ -84,21 +84,18 @@ func MsgIm(r Request) ([]string, MsgItemResp, error) {
 func MsgRead(r Request) ([]string, error) {
 	linkKeys := make([]string, 0)
 
+	link, _ := linkService.GetByKey(r.LinkKey)
+
 	param := r.Param
-	msgId, ok := param["msgId"].(string)
+	convId, ok := param["convId"].(string)
 	if !ok {
-		msgId = ""
+		convId = ""
 	}
-	toLinkKey, ok := param["toLinkKey"].(string)
-	if !ok {
-		toLinkKey = ""
-	}
-	toLink, _ := linkService.GetByKey(toLinkKey)
 
 	//update convSend status
 	whereMap := map[string]interface{}{
-		"msg_id":     msgId,
-		"to_link_id": toLink.Id,
+		"conv_id":    convId,
+		"to_link_id": link.Id,
 	}
 	updateMap := map[string]interface{}{
 		"status":  1,
@@ -109,7 +106,7 @@ func MsgRead(r Request) ([]string, error) {
 		log.Println("update read status err", err)
 	}
 
-	linkKeys = append(linkKeys, toLink.Key)
+	linkKeys = append(linkKeys, link.Key)
 	return linkKeys, err
 }
 
@@ -196,11 +193,15 @@ func storeMsg(links []model.Link, msgType, content, fromLinkKey, convId, msgKey 
 
 	//conv_send
 	for _, link := range links {
+		status := 0
+		if link.Key == fromLinkKey {
+			status = 1
+		}
 		err = convSendService.Create(&model.ConvSend{
 			MsgId:    msg.Id,
 			ConvId:   convId,
 			ToLinkId: link.Id,
-			Status:   0,
+			Status:   status,
 			Created:  now,
 			Updated:  now,
 		})

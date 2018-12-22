@@ -20,7 +20,7 @@ func ParseMsg(request []byte) (linkKeys []string, data []byte) {
 	if err != nil {
 		log.Println("rpc parseMsg error", err)
 
-		return nil, nil
+		return response.LinkKeys, nil
 	}
 
 	return response.LinkKeys, response.Data

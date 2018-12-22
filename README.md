@@ -10,11 +10,13 @@ https://www.processon.com/view/link/5a0998cae4b049e7f4fcdcdc
 
 ### todo
 
-* 前端: 消息类型、消息已读未读
+* 前端: 消息类型
 * userLogic: 登录注册api
 * msgLogic: 多人群聊的会话
 * gateway: 推送push
-* 第三方: 好友关系
+* wss
+* 第三方: 好友关系，在线列表
+* 聊天机器人
 
 ### APP聊天的流程
 
@@ -86,7 +88,7 @@ request:
 
     action: msg-read,
     linkKey: userId,
-    param: {toLinkKey, msgId}
+    param: {convId}
 }
 ```
 
@@ -196,6 +198,15 @@ request:
 * createApp
 * listApp
 * getApp
+
+### local startup
+* git clone [url]
+* cd msg
+* 编辑配置文件
+* export GO111MODULE=on
+* go mod tidy (终端需科学上网)
+* go mod vendor
+* run
 
 ### 部署到kuipmake.com的端口
 * gateway

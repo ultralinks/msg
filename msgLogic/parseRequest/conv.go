@@ -25,13 +25,14 @@ type ConvItem struct {
 
 func ConvCreate(r Request) ([]string, ConvItem, error) {
 	linkKeys := make([]string, 0)
+	convItem := ConvItem{}
 
 	link, _ := linkService.GetByKey(r.LinkKey)
 
 	param := r.Param
 	convKey, ok := param["convKey"].(string)
 	if !ok {
-		convKey = ""
+		convKey = "default"
 	}
 	convType, ok := param["convType"].(string)
 	if !ok {
@@ -39,7 +40,7 @@ func ConvCreate(r Request) ([]string, ConvItem, error) {
 	}
 	name, ok := param["convName"].(string)
 	if !ok {
-		name = "unknown"
+		name = "unnamed"
 	}
 	avt, ok := param["convAvt"].(string)
 	if !ok {
@@ -53,7 +54,14 @@ func ConvCreate(r Request) ([]string, ConvItem, error) {
 		linkKeyInterfaces = make([]interface{}, 0)
 	}
 	for _, l := range linkKeyInterfaces {
-		convLinkKeys = append(convLinkKeys, l.(string))
+		lString, ok := l.(string)
+		if !ok {
+			lString = ""
+		}
+		convLinkKeys = append(convLinkKeys, lString)
+	}
+	if len(convLinkKeys) < 2 {
+		return linkKeys, convItem, errors.New("linkKeys lack")
 	}
 	links, err := getLinksByLinkKeys(convLinkKeys)
 	if err != nil {
@@ -112,7 +120,7 @@ func ConvCreate(r Request) ([]string, ConvItem, error) {
 	}
 
 	lastMsg, _ := msgService.GetByConvId(conv.Id)
-	convItem := ConvItem{
+	convItem = ConvItem{
 		ConvId:    conv.Id,
 		Conv:      conv,
 		Links:     links,
@@ -285,7 +293,11 @@ func ConvRemoveLinks(r Request) ([]string, error) {
 		convId = ""
 	}
 	fromLink, _ := linkService.GetByKey(r.LinkKey)
-	links, err := getLinksByLinkKeys(param["linkKeys"].([]string))
+	linkKeySlice, ok := param["linkKeys"].([]string)
+	if !ok {
+		linkKeySlice = []string{}
+	}
+	links, err := getLinksByLinkKeys(linkKeySlice)
 	if err != nil {
 		log.Println("get links by linkKeys err", err)
 		return linkKeys, err
