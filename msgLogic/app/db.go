@@ -12,7 +12,7 @@ var DB *gorm.DB
 
 func InitDB() {
 	var err error
-	mysqlArgs := Config.DB.User + ":" + Config.DB.Password + "@tcp(" + Config.DB.Host + ":" + Config.DB.Port + ")/" + Config.DB.Name + "?charset=utf8&parseTime=True&loc=Local"
+	mysqlArgs := Config.DB.User + ":" + Config.DB.Password + "@tcp(" + Config.DB.Host + ":" + Config.DB.Port + ")/" + Config.DB.Name + "?charset=utf8mb4&parseTime=True&loc=Local"
 	//Db, err = gorm.Open("mysql", "root:123456789@/chat?charset=utf8&parseTime=True&loc=Local")
 	DB, err = gorm.Open("mysql", mysqlArgs)
 

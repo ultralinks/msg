@@ -12,18 +12,16 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/msgLogic/msgLogic msgLog
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/userLogic/userLogic userLogic/cmd/main.go
 
 echo "scp is starting..."
-export SSHPASS='ipar$1000'
-sshpass -e scp -o stricthostkeychecking=no -P 1607 -r ./build/* drone@ideapar.com:~/msg/release
-sshpass -e ssh -o stricthostkeychecking=no -p 1607 drone@ideapar.com "rm -rf ~/msg/gateway ~/msg/msgLogic ~/msg/userLogic && mv ~/msg/release/* ~/msg"
+scp -o stricthostkeychecking=no -r ./build/* ubuntu@kuipmake.com:/usr/local/src/kuipmake/msg/release
+ssh -o stricthostkeychecking=no ubuntu@kuipmake.com "rm -rf /usr/local/src/kuipmake/msg/gateway /usr/local/src/kuipmake/msg/msgLogic /usr/local/src/kuipmake/msg/userLogic && mv /usr/local/src/kuipmake/msg/release/* /usr/local/src/kuipmake/msg"
 
+#由于每个ssh不会自动退出，所以下面每条需要单独运行
 echo "running..."
-sshpass -e ssh -o stricthostkeychecking=no -p 1607 drone@ideapar.com "pkill msgGateway"
-sshpass -e ssh -o stricthostkeychecking=no -p 1607 drone@ideapar.com "cd ~/msg/gateway && nohup ./msgGateway 1>msgGateway.log 2>msgGateway.err &"
-
-sshpass -e ssh -o stricthostkeychecking=no -p 1607 drone@ideapar.com "pkill msgLogic"
-sshpass -e ssh -o stricthostkeychecking=no -p 1607 drone@ideapar.com "cd ~/msg/msgLogic && nohup ./msgLogic 1>msgLogic.log 2>msgLogic.err &"
-
-sshpass -e ssh -o stricthostkeychecking=no -p 1607 drone@ideapar.com "pkill userLogic"
-sshpass -e ssh -o stricthostkeychecking=no -p 1607 drone@ideapar.com "cd ~/msg/userLogic && nohup ./userLogic 1>userLogic.log 2>userLogic.err &"
+ssh -o stricthostkeychecking=no ubuntu@kuipmake.com "pkill msgGateway"
+ssh -o stricthostkeychecking=no ubuntu@kuipmake.com "cd /usr/local/src/kuipmake/msg/gateway && nohup ./msgGateway 1>msgGateway.log 2>msgGateway.err &"
+ssh -o stricthostkeychecking=no ubuntu@kuipmake.com "pkill msgLogic"
+ssh -o stricthostkeychecking=no ubuntu@kuipmake.com "cd /usr/local/src/kuipmake/msg/msgLogic && nohup ./msgLogic 1>msgLogic.log 2>msgLogic.err &"
+ssh -o stricthostkeychecking=no ubuntu@kuipmake.com "pkill userLogic"
+ssh -o stricthostkeychecking=no ubuntu@kuipmake.com "cd /usr/local/src/kuipmake/msg/userLogic && nohup ./userLogic 1>userLogic.log 2>userLogic.err &"
 
 echo "ci ok"
